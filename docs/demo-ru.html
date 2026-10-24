@@ -1,0 +1,287 @@
+<title>Карточки графа NWT</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<style>
+/* Layout: one reading column; the type map sits beside its card panel and stacks on phones. */
+:root {
+  --bg: #f5f7f8; --surface: #ffffff; --fg: #17232b; --muted: #5b6b75; --line: #d5dde2;
+  --accent: #155e86; --accent-soft: #e2eef5;
+  --k-isa: #155e86; --k-contains: #7d8b94; --k-made: #b0650e; --k-link: #18806f;
+  --code-bg: #eef2f4;
+  --f-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #10171c; --surface: #172129; --fg: #e3eaee; --muted: #93a3ad; --line: #2b3a44;
+  --accent: #6fb6e0; --accent-soft: #1b3445;
+  --k-isa: #6fb6e0; --k-contains: #8796a0; --k-made: #e39a45; --k-link: #4cc2ad; --code-bg: #0c1216; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #10171c; --surface: #172129; --fg: #e3eaee; --muted: #93a3ad; --line: #2b3a44;
+  --accent: #6fb6e0; --accent-soft: #1b3445;
+  --k-isa: #6fb6e0; --k-contains: #8796a0; --k-made: #e39a45; --k-link: #4cc2ad; --code-bg: #0c1216; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 32px 64px }
+main { max-width: 1120px; margin: 0 auto; display: grid; gap: 56px }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; line-height: 1.15; margin: 0 }
+h1 { font-size: clamp(2rem, 5vw, 3rem) }
+h2 { font-size: 1.6rem }
+h3 { font-size: 1.1rem }
+p { margin: 0; max-width: 68ch }
+code, .mono { font-family: var(--f-mono); font-size: .88em }
+.eyebrow { font: 500 .75rem/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+section { display: grid; gap: 20px; min-width: 0 }
+.lede { font-size: 1.15rem; color: var(--muted) }
+.head { display: grid; gap: 14px }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 6px; align-content: start }
+.tile .num { font: 700 2rem/1.1 var(--f-display); font-variant-numeric: tabular-nums }
+.tile.good .num { color: var(--k-link) }
+.tile .cap { color: var(--muted); font-size: .9rem }
+.problem { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px }
+.problem div { display: grid; gap: 6px; align-content: start }
+.problem b { font-family: var(--f-display); font-size: 1.05rem }
+.problem p { color: var(--muted); font-size: .95rem }
+/* graph needs the full width to stay readable; the card panel follows below it */
+.map { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px }
+.svgwrap { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px; overflow-x: auto }
+svg { display: block; width: 100%; min-width: 640px; height: auto }
+.node rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.2 }
+.node text { fill: var(--fg); font: 600 13px var(--f-body) }
+.node .cnt { fill: var(--muted); font: 400 11px var(--f-mono) }
+.node { cursor: pointer }
+.node:hover rect, .node:focus-visible rect { stroke: var(--accent) }
+.node.sel rect { stroke: var(--accent); stroke-width: 2.4; fill: var(--accent-soft) }
+.node:focus { outline: none }
+.layer-label { fill: var(--muted); font: 500 11px var(--f-mono); letter-spacing: .08em }
+.edge { fill: none; stroke-width: 1.6; opacity: .55; transition: opacity .15s }
+.edge.on { opacity: 1; stroke-width: 2.4 }
+.edge.dim { opacity: .12 }
+.k-is_a { stroke: var(--k-isa) } .k-contains { stroke: var(--k-contains) }
+.k-made_from { stroke: var(--k-made); stroke-dasharray: 6 4 } .k-link { stroke: var(--k-link); stroke-dasharray: 2 4 }
+.mk-is_a { fill: var(--k-isa) } .mk-contains { fill: var(--k-contains) } .mk-made_from { fill: var(--k-made) } .mk-link { fill: var(--k-link) }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: .88rem; color: var(--muted) }
+.legend span { display: inline-flex; align-items: center; gap: 8px }
+.legend svg { width: 34px; min-width: 0; height: 10px }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 12px; min-width: 0 }
+.panel .meta { display: flex; flex-wrap: wrap; gap: 6px }
+.chip { font: 500 .75rem/1 var(--f-mono); padding: 5px 8px; border-radius: 4px; background: var(--code-bg); color: var(--muted); white-space: nowrap }
+.chip.tok { background: var(--accent-soft); color: var(--accent) }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line) }
+.tabs button { font: 500 .85rem var(--f-body); color: var(--muted); background: none; border: 0; border-bottom: 2px solid transparent; padding: 6px 10px; cursor: pointer }
+.tabs button[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent) }
+.tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+pre { margin: 0; background: var(--code-bg); border-radius: 4px; padding: 12px; font: 12.5px/1.5 var(--f-mono); overflow: auto; max-height: 420px; white-space: pre-wrap; word-break: break-word }
+.steps { display: grid; gap: 10px }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; gap: 8px; min-width: 0 }
+.step .row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px }
+.step .n { font: 700 1rem var(--f-display); color: var(--muted); font-variant-numeric: tabular-nums; min-width: 1.4em }
+.step .why { color: var(--muted); font-size: .92rem; flex: 1 1 260px }
+.step .call { font-family: var(--f-mono); font-size: .88rem; overflow-wrap: anywhere }
+.step .bar { height: 6px; background: var(--code-bg); border-radius: 3px; overflow: hidden }
+.step .bar i { display: block; height: 100%; background: var(--accent) }
+details summary { cursor: pointer; color: var(--accent); font-size: .88rem }
+details[open] summary { margin-bottom: 8px }
+.total { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-family: var(--f-display); font-size: 1.15rem; padding: 4px 2px }
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px }
+.rule { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 10px; align-content: start; min-width: 0 }
+.rule p { color: var(--muted); font-size: .95rem }
+.cmp { display: flex; flex-wrap: wrap; gap: 6px 14px; font-family: var(--f-mono); font-size: .88rem }
+.cmp b { color: var(--fg) }
+.try { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px }
+.try ol, .try ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px }
+.note { border-left: 3px solid var(--k-made); padding: 4px 0 4px 14px; color: var(--muted) }
+@media (prefers-reduced-motion: reduce) { .edge { transition: none } }
+</style>
+
+<main>
+  <header class="head">
+    <span class="eyebrow">NWT · данные для AI-агентов · MCP</span>
+    <h1>Карточки графа NWT</h1>
+    <p class="lede">Как чужой AI-агент находит наши данные о пластиках и рыночных символах быстро и дёшево: он не получает весь каталог сразу, а спускается от карты к нужной карточке.</p>
+  </header>
+
+  <section aria-labelledby="h-problem">
+    <h2 id="h-problem">Проблема</h2>
+    <div class="problem">
+      <div><b>Агент начинает с нуля</b><p>Клиент подключает своего агента (Claude, ChatGPT, Cursor) к нам через MCP. В каждом новом разговоре агент ничего не знает о наших данных.</p></div>
+      <div><b>Память агента мала и платна</b><p>Всё, что мы ему даём, занимает контекст. Каждый токен стоит денег и времени, а лишнее мешает агенту думать.</p></div>
+      <div><b>Данные нужно понять, а не только найти</b><p>EUR/кг или USD/т, CFR или FOB, HDPE — это разновидность PE, а производят его из этилена. Без этого агент уверенно ошибается.</p></div>
+    </div>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section aria-labelledby="h-map">
+    <div class="head">
+      <h2 id="h-map">Карта типов и карточки</h2>
+      <p class="lede">14 типов узлов в двух деревьях. Нажмите на тип: под схемой появится его карточка (что это, какие поля, связи) и пример карточки узла. Это то, что агент получает через <code>nwt_get</code>.</p>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="map">
+      <div class="svgwrap"><svg id="graph" viewBox="0 0 880 540" role="img" aria-label="Типы узлов графа NWT и связи между ними"></svg></div>
+      <div class="panel" id="panel" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-steps">
+    <div class="head">
+      <h2 id="h-steps">Один вопрос, шаг за шагом</h2>
+      <p class="lede">«Сколько стоит HDPE плёнка в Европе и что влияет на цену?» Ниже — настоящие ответы сервера на каждый вызов и их размер.</p>
+    </div>
+    <div class="steps" id="steps"></div>
+  </section>
+
+  <section aria-labelledby="h-rules">
+    <h2 id="h-rules">Четыре правила, которые экономят токены</h2>
+    <div class="rules" id="rules"></div>
+  </section>
+
+  <section aria-labelledby="h-try">
+    <h2 id="h-try">Как попробовать и что ещё не готово</h2>
+    <div class="try">
+      <div class="rule">
+        <h3>Попробовать</h3>
+        <ol>
+          <li>Открыть новую сессию Claude Code в папке <code>~/work/nwt</code>: сервер <code>nwt-data</code> подключён на уровне проекта.</li>
+          <li>Спросить обычным языком, например «из чего делают ПЭТ» или «какие ценовые ряды есть для HDPE в Европе».</li>
+          <li>Код сервера и тесты: <code>~/work/nwt/nwt-mcp</code> (GitHub: byigorduvanov/nwt-mcp), запуск тестов <code>uv run pytest -q</code>.</li>
+        </ol>
+      </div>
+      <div class="rule">
+        <h3>Ещё не готово</h3>
+        <ul id="todo"></ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script type="application/json" id="data">{"version":"nwt-symbol-graph c549136b615f4eba4df39c68444a3f3322bd12a0","edges":[["category","has_subcategory","subcategory",614,"contains"],["collection","has_category","category",118,"contains"],["family","has_field","field",95258,"contains"],["family","in_domain","data_domain",1881,"is_a"],["feedstock","converted_to","intermediate",5,"made_from"],["field","in_field_category","field_category",2899,"contains"],["intermediate","converted_to","intermediate",4,"made_from"],["intermediate","converted_to","monomer",10,"made_from"],["intermediate","priced_as","symbol",52,"link"],["intermediate","produced_by","symbol",4,"link"],["monomer","converted_to","intermediate",3,"made_from"],["monomer","converted_to","monomer",1,"made_from"],["monomer","converted_to","polymer",9,"made_from"],["monomer","converted_to","variety",1,"made_from"],["monomer","priced_as","symbol",62,"link"],["monomer","produced_by","symbol",5,"link"],["polymer","has_variety","variety",12,"is_a"],["polymer","priced_as","symbol",85,"link"],["polymer","produced_by","symbol",6,"link"],["subcategory","has_family","family",1881,"contains"],["subcategory","has_symbol","symbol",16790,"contains"],["substance","priced_as","symbol",972,"link"],["substance","produced_by","symbol",1,"link"],["symbol","metric_of","intermediate",5,"link"],["symbol","metric_of","monomer",11,"link"],["symbol","metric_of","polymer",16,"link"],["symbol","metric_of","substance",27,"link"],["symbol","metric_of","variety",2,"link"],["variety","priced_as","symbol",95,"link"],["variety","produced_by","symbol",3,"link"]],"types":{"feedstock":{"count":3,"card":{"type":"feedstock","layer":"plastics","level":0,"what":"raw natural resource at the start of the chain (crude oil, gas, salt)","count":3,"fields":{"name_ru":"Russian name (detail=full)","name_en":"English name (shown as name)","abbr":"abbreviation","formula":"chemical formula","repeat_unit":"polymer repeat unit","description_ru":"Russian description (detail=full)","sources":"source URLs (detail=full)"},"links":{"used_for":"made_from intermediate x5"},"examples":["PLX-FEED-CRUDE","PLX-FEED-NATGAS"]},"card_tok":126,"example":{"id":"PLX-FEED-CRUDE","type":"feedstock","name":"Crude oil","identifiers":{"hs_code":"270900"},"ranges":{"api_gravity":[38.06,38.06,"API degree"],"sulfur_content":[0.37,0.37,"wt%"],"sulfur_content_max":[0.42,0.42,"wt%"]},"used_for":"PLX-INT-NAPHTHA"},"example_tok":63,"what":"raw natural resource at the start of the chain (crude oil, gas, salt)","layer":"plastics"},"intermediate":{"count":10,"card":{"type":"intermediate","layer":"plastics","level":1,"what":"processed chemical between feedstock and monomer (naphtha, ethane, benzene)","count":10,"fields":{"name_ru":"Russian name (detail=full)","name_en":"English name (shown as name)","abbr":"abbreviation","formula":"chemical formula","repeat_unit":"polymer repeat unit","description_ru":"Russian description (detail=full)","sources":"source URLs (detail=full)"},"links":{"made_from":"made_from monomer x3","metrics":"link symbol x5","priced_as":"link symbol x52","produced_by":"link symbol x4","used_for":"made_from monomer x10"},"examples":["PLX-INT-NAPHTHA","PLX-INT-ETHANE"]},"card_tok":158,"example":{"id":"PLX-INT-NAPHTHA","type":"intermediate","name":"Naphtha","identifiers":{"hs_code":"271012"},"made_from":"PLX-FEED-CRUDE","metrics":"sym:CMD/PET/FDS-FEED/NAPHTHA_PROPANE_SPREAD","priced_as":{"sym:CMD/PET/FDS-FEED/":["NAPHTHA_CFR_JAPAN","NAPHTHA_CIF_NWE","NAPHTHA_HEAVY","NAPHTHA_LIGHT","NAPHTHA_MOPS","NAPHTHA_OPEN","NAPHTHA_PARAFFINIC"]},"produced_by":"sym:CMD/PET/CPT-PLT/CRACKER_NAPHTHA","used_for":{"":["PLX-INT-BENZENE","PLX-INT-PXYLENE","PLX-MON-BUTADIENE","PLX-MON-ETHYLENE","PLX-MON-PROPYLENE"]},"price_series":2},"example_tok":132,"what":"processed chemical between feedstock and monomer (naphtha, ethane, benzene)","layer":"plastics"},"monomer":{"count":8,"card":{"type":"monomer","layer":"plastics","level":2,"what":"building block that is polymerised (ethylene, propylene, styrene)","count":8,"fields":{"name_ru":"Russian name (detail=full)","name_en":"English name (shown as name)","abbr":"abbreviation","formula":"chemical formula","repeat_unit":"polymer repeat unit","description_ru":"Russian description (detail=full)","sources":"source URLs (detail=full)"},"links":{"made_from":"made_from monomer x1","metrics":"link symbol x11","priced_as":"link symbol x62","produced_by":"link symbol x5","used_for":"made_from variety x1"},"examples":["PLX-MON-ETHYLENE","PLX-MON-PROPYLENE"]},"card_tok":155,"example":{"id":"PLX-MON-ETHYLENE","type":"monomer","name":"Ethylene","formula":"C2H4","identifiers":{"cas_number":"74-85-1","un_number":"1962","hs_code":"290121"},"ranges":{"molar_mass":[28.05,28.05,"g/mol"],"boiling_point":[-104.0,-102.4,"C"],"melting_temperature":[-169.2,-169.0,"C"],"flash_point":[-100,-100,"C"]},"made_from":{"":["PLX-INT-ETHANE","PLX-INT-NAPHTHA"]},"metrics":{"sym:CMD/PET/OLE-C2C3/":["ETHYLENE_CAPACITY_ADDITIONS","ETHYLENE_NAPHTHA_MARGIN","ETHYLENE_PROPYLENE_SPREAD"]},"priced_as":{"sym:CMD/PET/OLE-C2C3/":["ETHYLENE","ETHYLENE_ASIA_CFR_NEA","ETHYLENE_ASIA_CFR_SEA","ETHYLENE_CHINA_DOMESTIC","ETHYLENE_FUT_DALIAN","ETHYLENE_INDIA","ETHYLENE_MIDDLE_EAST","ETHYLENE_NWE_CONTRACT","ETHYLENE_NWE_SPOT","ETHYLENE_USGC_CONTRACT","ETHYLENE_USGC_SPOT"]},"used_for":{"":["PLX-INT-EDC","PLX-INT-EO","PLX-INT-ETHYLBENZENE","PLX-POL-PE"]},"price_series":10},"example_tok":215,"what":"building block that is polymerised (ethylene, propylene, styrene)","layer":"plastics"},"polymer":{"count":6,"card":{"type":"polymer","layer":"plastics","level":3,"what":"polymer family (PE, PP, PVC, PS, PET, ABS)","count":6,"fields":{"name_ru":"Russian name (detail=full)","name_en":"English name (shown as name)","abbr":"abbreviation","formula":"chemical formula","repeat_unit":"polymer repeat unit","description_ru":"Russian description (detail=full)","sources":"source URLs (detail=full)"},"links":{"made_from":"made_from monomer x9","metrics":"link symbol x16","priced_as":"link symbol x85","produced_by":"link symbol x6","varieties":"is_a variety x12"},"examples":["PLX-POL-PE","PLX-POL-PP"]},"card_tok":146,"example":{"id":"PLX-POL-PE","type":"polymer","name":"Polyethylene","abbr":"PE","formula":"(C2H4)n","repeat_unit":"–CH2–CH2–","identifiers":{"cas_number":"9002-88-4","hs_code":"390110"},"ranges":{"melt_flow_rate":[0.25,9.5,"g/10 min"],"density_kg_m3":[919.0,947,"kg/m3"],"tensile_modulus":[200,645,"MPa"],"tensile_stress_at_yield":[9,22,"MPa"],"dart_drop_impact":[280,280,"g"],"tensile_strength_md":[27,27,"MPa"],"tensile_strength_td":[25,25,"MPa"],"tensile_strain_at_break_md":[200,200,"%"],"tensile_strain_at_break_td":[500,500,"%"],"vicat_softening_temperature":[93,93,"C"],"peak_melting_point":[108,108,"C"],"haze":[15,15,"%"],"gloss_20deg":[10,10,"-"],"gloss_60deg":[50,50,"-"],"strain_at_yield":[8,14,"%"],"charpy_notched_impact":[24,24,"kJ/m2"],"charpy_notched_minus30":[8,8,"kJ/m2"],"vicat_a":[120,120,"C"],"vicat_b":[70,70,"C"],"tensile_stress":[20.3,20.3,"MPa"],"stress_at_break":[37,37,"MPa"],"strain_at_break":[780,780,"%"],"flexural_modulus":[660,660,"MPa"],"izod_impact":[23,23,"kJ/m2"],"shore_d":[61,61,"-"],"clte_parallel":[180,180,"E-6/K"]},"made_from":"PLX-MON-ETHYLENE","metrics":{"sym:CMD/PET/PLA-PE/":["PE_CAPACITY_ADDITIONS","PE_CONVERTER_DEMAND","PE_EXPORTS_US","PE_IMPORTS_CHINA","PE_OPERATING_RATE","PE_PRODUCER_MARGIN"]},"priced_as":{"sym:CMD/PET/PLA-PE/":["PE_CONTRACT_EU_MONTHLY","PE_FUT_DALIAN_LLDPE"]},"produced_by":"sym:CMD/PET/CPT-PLT/PE_LINE_SWING","varieties":{"":["PLX-VAR-HDPE","PLX-VAR-LDPE","PLX-VAR-LLDPE"]},"price_series":1},"example_tok":364,"what":"polymer family (PE, PP, PVC, PS, PET, ABS)","layer":"plastics"},"variety":{"count":12,"card":{"type":"variety","layer":"plastics","level":4,"parent":"is_a polymer","what":"commercial kind of a polymer (HDPE, LDPE, PP homopolymer); has properties and market symbols","count":12,"fields":{"name_ru":"Russian name (detail=full)","name_en":"English name (shown as name)","abbr":"abbreviation","formula":"chemical formula","repeat_unit":"polymer repeat unit","description_ru":"Russian description (detail=full)","properties":"measured properties by grade (detail=full) (in 2 of 12)","sources":"source URLs (detail=full)","recycled":"true for recycled material (in 1 of 12)"},"links":{"is_a":"is_a polymer x12","made_from":"made_from monomer x1","metrics":"link symbol x2","priced_as":"link symbol x95","produced_by":"link symbol x3"},"examples":["PLX-VAR-HDPE","PLX-VAR-LDPE"]},"card_tok":195,"example":{"id":"PLX-VAR-HDPE","type":"variety","name":"High-density polyethylene","is_a":"PLX-POL-PE","inherits":["formula","repeat_unit"],"abbr":"HDPE","identifiers":{"cas_number":"9002-88-4","hs_code":"390120","resin_code":2},"ranges":{"density_kg_m3":[950.0,960.0,"kg/m3"],"melt_flow_rate":[0.23,0.6,"g/10 min"],"melting_temperature":[130,135,"C"],"tensile_stress_at_yield":[23,23,"MPa"],"strain_at_break":[700,700,"%"],"elongation_yield":[9,9,"%"],"tensile_modulus":[900,900,"MPa"],"shore_hardness":[61,63,"-"],"charpy_notched_impact":[13,26,"kJ/m2"],"vicat_softening_a50":[74,74,"C"],"dielectric_strength":[20000000.0,20000000.0,"V/m"],"processing_temp":[220,260,"C"]},"priced_as":{"sym:CMD/PET/PLA-PE/":["HDPE_BLACK","HDPE_BM","HDPE_BM_LARGE","HDPE_BM_SMALL","HDPE_CFR_CHINA","HDPE_CFR_SEA","HDPE_FAS_HOUSTON","HDPE_FD_NWE","HDPE_FILM","HDPE_FILM_HMW","HDPE_FILM_MMW","HDPE_IM","HDPE_IM_CRATES","HDPE_IM_THINWALL","HDPE_INDIA","HDPE_LATAM","HDPE_MIDDLE_EAST","HDPE_MONOFILAMENT","HDPE_NATURAL","HDPE_PIPE"]},"priced_as_total":31,"produced_by":"sym:CMD/PET/CPT-PLT/PE_LINE_HDPE","price_series":9},"example_tok":273,"what":"commercial kind of a polymer (HDPE, LDPE, PP homopolymer); has properties and market symbols","layer":"plastics"},"substance":{"count":535,"card":{"type":"substance","layer":"plastics","what":"other traded chemical outside the main chain; linked only to market symbols","count":535,"fields":{"name_en":"English name (shown as name)","name_ru":"Russian name (detail=full)","abbr":"abbreviation","subcategory":"catalogue subcategory code"},"links":{"metrics":"link symbol x27","priced_as":"link symbol x972","produced_by":"link symbol x1"},"examples":["PLX-SUB-C9-AROMATICS","PLX-SUB-MESITYLENE"]},"card_tok":112,"example":{"id":"PLX-SUB-MIXED-XYLENES","type":"substance","name":"Mixed xylenes","abbr":"XYL","subcategory":"ARO-BTX","priced_as":"sym:CMD/PET/ARO-BTX/MIXED_XYLENES"},"example_tok":39,"what":"other traded chemical outside the main chain; linked only to market symbols","layer":"plastics"},"collection":{"count":20,"card":{"type":"collection","layer":"catalogue","level":0,"what":"top section of the NWT data catalogue (Commodities, Equity, Debt...)","count":20,"fields":{"code":"code inside parent","description":"short description"},"links":{"categories":"contains category x118"},"examples":["col:EQ","col:FI"]},"card_tok":73,"example":{"id":"col:CMD","type":"collection","name":"Commodities","description":"Energy, petrochemicals and chemicals, metals and mining, agriculture and food, and freight and shipping: every product, grade, hub, route and contract with prices, fundamentals, events and forecasts.","categories":{"cat:CMD/":["AGR","ENE","FRT","MET","PET"]}},"example_tok":83,"what":"top section of the NWT data catalogue (Commodities, Equity, Debt...)","layer":"catalogue"},"category":{"count":118,"card":{"type":"category","layer":"catalogue","level":1,"parent":"in collection","what":"section inside a collection (Petrochemicals & Chemicals)","count":118,"fields":{"code":"code inside parent","description":"short description"},"links":{"in":"contains collection x118","subcategories":"contains subcategory x614"},"examples":["cat:EQ/EQC","cat:EQ/ETP"]},"card_tok":88,"example":{"id":"cat:CMD/PET","type":"category","name":"Petrochemicals & Chemicals","description":"Olefins, aromatics, polymers and plastics, intermediates, fertilisers, inorganics and feedstocks by product and grade.","in":"col:CMD","subcategories":{"sub:CMD/PET/":["ARO-BTX","ARO-STY","CPT-PLT","CPT-TRD","FDS-FEED","FRT-CPA","FRT-NIT","FRT-NPK","FRT-PHO","FRT-POT","INO-CLA","INO-ELC","INO-IGS","INO-PIG","INT-ACR","INT-C1","INT-NYL","INT-OXO","INT-SOL","INT-SRF"]},"subcategories_total":32},"example_tok":121,"what":"section inside a collection (Petrochemicals & Chemicals)","layer":"catalogue"},"subcategory":{"count":614,"card":{"type":"subcategory","layer":"catalogue","level":2,"parent":"in category","what":"product group; owns market symbols and data families (Polyethylene)","count":614,"fields":{"code":"code inside parent","description":"short description","realtime":"true if data is published in real time"},"links":{"families":"contains family x1881","in":"contains category x614","symbols":"contains symbol x16790"},"examples":["sub:EQ/EQC/SHR","sub:EQ/EQC/DR"]},"card_tok":111,"example":{"id":"sub:CMD/PET/PLA-PE","type":"subcategory","name":"Polyethylene","description":"HDPE, LDPE, LLDPE and metallocene grades by application.","realtime":true,"families":{"fam:":["nwt-cmd-pet-pla-pe-events","nwt-cmd-pet-pla-pe-fundamentals","nwt-cmd-pet-pla-pe-pricing","nwt-cmd-pet-pla-pe-reference","nwt-cmd-pet-pla-pe-risk"]},"in":"cat:CMD/PET","symbols":{"sym:CMD/PET/PLA-PE/":["EAA","ELASTOMER_POE","EMA","EVA","EVA_FILM","EVA_FOAM","EVA_HOT_MELT","EVA_SOLAR","HDPE_BLACK","HDPE_BM","HDPE_BM_LARGE","HDPE_BM_SMALL","HDPE_CFR_CHINA","HDPE_CFR_SEA","HDPE_FAS_HOUSTON","HDPE_FD_NWE","HDPE_FILM","HDPE_FILM_HMW","HDPE_FILM_MMW","HDPE_IM"]},"symbols_total":75},"example_tok":165,"what":"product group; owns market symbols and data families (Polyethylene)","layer":"catalogue"},"symbol":{"count":16790,"card":{"type":"symbol","layer":"catalogue","level":3,"parent":"in subcategory","what":"one market product/quote that can have prices (HDPE film CFR China)","count":16790,"fields":{"code":"code inside parent","unit":"trading unit, UN/CEFACT code (TNE tonne, KGM kg, C62 piece, CCY currency, IDX index)","class":"symbol class: series (priced quote), grade, substance, metric, futures, asset, trade, policy","base":"product the symbol is about","region":"region code (see nwt_map regions)","basis":"delivery basis as written in the symbol","incoterm":"Incoterm (FOB, CFR, CIF...)","price_type":"assessment, contract, spot..."},"links":{"in":"contains subcategory x16790","metric_of":"link variety x2","plant_of":"link variety x3","prices":"link variety x95"},"examples":["sym:EQ/EQC/SHR/COMMON","sym:EQ/EQC/SHR/PREF"],"classes":{"grade":647,"series":301,"substance":289,"metric":109,"asset":61,"trade":54,"futures":26,"policy":9},"units":{"C62":6900,"TNE":3002,"CCY":2780,"P1":1143,"IDX":491,"SHR":456,"KGM":381,"MWH":326}},"card_tok":254,"example":{"id":"sym:CMD/PET/PLA-PE/HDPE_FILM","type":"symbol","name":"HDPE film grade","unit":"TNE","class":"grade","base":"HDPE_FILM","in":"sub:CMD/PET/PLA-PE","prices":"PLX-VAR-HDPE"},"example_tok":44,"what":"one market product/quote that can have prices (HDPE film CFR China)","layer":"catalogue"},"family":{"count":1881,"card":{"type":"family","layer":"catalogue","level":3,"parent":"in subcategory","what":"data product of a subcategory: one record schema (Polyethylene: Prices)","count":1881,"fields":{"summary":"what the family covers","cadence":"how often data is published","realtime":"true if data is published in real time"},"links":{"domain":"is_a data_domain x1881","fields":"contains field x95258","in":"contains subcategory x1881"},"examples":["fam:nwt-eq-eqc-shr-reference","fam:nwt-eq-eqc-shr-pricing"],"inherited_fields":{"all families":{"fld:":["as_of_timestamp","effective_from","effective_to","entity_id","product_code","record_id","record_status","record_version","source_type"]},"per domain":{"dom:reference":28,"dom:pricing":30,"dom:fundamentals":23,"dom:events":25,"dom:risk":24,"dom:documents":28}}},"card_tok":198,"example":{"id":"fam:nwt-cmd-pet-pla-pe-pricing","type":"family","name":"Polyethylene: Prices, Quotes & Curves","is_a":"dom:pricing","summary":"Pricing & Markets for hDPE, LDPE, LLDPE and metallocene grades by application. Covers 75 enumerated products.","cadence":"Real time, intraday and daily","realtime":true,"fields":{"fld:":["assessment_id","assessment_timestamp","assessment_type","benchmark_price","contract_month","contract_price","curve_point_date","differential_to_benchmark","export_parity_price","forward_price","futures_price","import_parity_price","margin_vs_feedstock","netback_value","open_interest","physical_premium","price_high","price_low","price_mid","spot_price","tenor"]},"inherits_fields":{"type:family":9,"dom:pricing":30},"in":"sub:CMD/PET/PLA-PE"},"example_tok":191,"what":"data product of a subcategory: one record schema (Polyethylene: Prices)","layer":"catalogue"},"field":{"count":2899,"card":{"type":"field","layer":"catalogue","level":4,"parent":"in family","what":"column of a family record","count":2899,"fields":{"data_type":"value type","description":"short description","unit":"trading unit, UN/CEFACT code (TNE tonne, KGM kg, C62 piece, CCY currency, IDX index) (in 1447 of 2899)"},"links":{"field_category":"contains field_category x2899","in_families":"contains family x95258"},"examples":["fld:record_id","fld:record_version"]},"card_tok":111,"example":{"id":"fld:price_mid","type":"field","name":"Price Mid","data_type":"number","unit":"currency per unit identified by unit_code","description":"Mid-point of the assessed range.","field_category":"fcat:price","in_families":{"fam:":["nwt-alm-col-win-pricing","nwt-cmd-agr-agf-inp-pricing","nwt-cmd-agr-for-lmb-pricing","nwt-cmd-agr-for-plp-pricing","nwt-cmd-agr-grn-crn-pricing","nwt-cmd-agr-grn-rce-pricing","nwt-cmd-agr-grn-wht-pricing","nwt-cmd-agr-liv-ctl-pricing","nwt-cmd-agr-liv-dry-pricing","nwt-cmd-agr-liv-hog-pricing","nwt-cmd-agr-liv-plt-pricing","nwt-cmd-agr-oil-plm-pricing","nwt-cmd-agr-oil-rap-pricing","nwt-cmd-agr-oil-soy-pricing","nwt-cmd-agr-oil-spo-pricing","nwt-cmd-agr-prd-frv-pricing","nwt-cmd-agr-prd-nps-pricing","nwt-cmd-agr-sft-coc-pricing","nwt-cmd-agr-sft-cof-pricing","nwt-cmd-agr-sft-cot-pricing"]},"in_families_total":95},"example_tok":213,"what":"column of a family record","layer":"catalogue"},"data_domain":{"count":6,"card":{"type":"data_domain","layer":"catalogue","what":"kind of data family (pricing, reference, events...): fields shared by all its families","count":6,"fields":{"cadence":"how often data is published"},"links":{"families":"is_a family x1881"},"examples":["dom:reference","dom:pricing"]},"card_tok":71,"example":{"id":"dom:pricing","type":"data_domain","name":"Pricing & Markets","cadence":"Real time through daily","fields_for_families":{"fld:":["adjustment_factor","ask_price","bid_price","close_price","currency_code","data_quality_score","effective_date","high_price","instrument_id","is_adjusted","low_price","market_code","mid_price","observation_timestamp","open_price","previous_close_price","price_change","price_change_percentage","price_source_code","price_type","quote_condition_code","quote_id","settlement_price","trade_count","transaction_price","transaction_volume","turnover_value","unit_code","volume","vwap_price"]},"families":{"fam:":["nwt-ai-prd-fac-pricing","nwt-alm-col-art-pricing","nwt-alm-col-lux-pricing","nwt-alm-col-win-pricing","nwt-alm-ils-cat-pricing","nwt-alm-prm-pred-pricing","nwt-alm-prm-spt-pricing","nwt-alm-ras-frc-pricing","nwt-alm-ras-lnd-pricing","nwt-alm-ras-rgt-pricing","nwt-alm-roy-lit-pricing","nwt-alm-roy-mus-pricing","nwt-alt-ads-lst-pricing","nwt-alt-ads-prc-pricing","nwt-cmd-agr-agf-inp-pricing","nwt-cmd-agr-for-lmb-pricing","nwt-cmd-agr-for-plp-pricing","nwt-cmd-agr-grn-crn-pricing","nwt-cmd-agr-grn-rce-pricing","nwt-cmd-agr-grn-wht-pricing"]},"families_total":246},"example_tok":302,"what":"kind of data family (pricing, reference, events...): fields shared by all its families","layer":"catalogue"},"field_category":{"count":14,"card":{"type":"field_category","layer":"catalogue","what":"group of fields by meaning (identifiers, prices, technical)","count":14,"fields":{"description":"short description"},"links":{"fields":"contains field x2899"},"examples":["fcat:technical","fcat:identifier"]},"card_tok":65,"example":{"id":"fcat:identifier","type":"field_category","name":"Identifiers & keys","description":"Primary and foreign keys, registry codes and standardised symbols that resolve an entity, instrument, document or event.","fields":{"fld:":["accession_number","accreditation_id","acquirer_id","active_ingredient_id","address_cluster_id","address_id","administrator_id","adviser_id","affiliation_organisation_id","agency_id","agent_bank_id","agent_id","aircraft_id","airworthiness_certificate_id","airworthiness_directive_number","alert_rule_id","amended_filing_id","api_integration_id","application_number","arranger_id"]},"fields_total":420},"example_tok":158,"what":"group of fields by meaning (identifiers, prices, technical)","layer":"catalogue"}},"steps":[{"tool":"nwt_map","args":{},"out":"{\"graph\":\"nwt-symbol-graph c549136b615f4eba4df39c68444a3f3322bd12a0\",\"trees\":{\"plastics (production)\":\"feedstock(3) > intermediate(10) > monomer(8) > polymer(6) > is_a > variety(12); substance(535) outside chain\",\"catalogue (classification)\":\"collection(20) > category(118) > subcategory(614) > symbol(16790) | family(1881) > field(2899)\",\"data kinds\":\"family is_a data_domain(6); field in field_category(14)\",\"links\":\"material priced_as symbol; material produced_by plant symbol; symbol metric_of material\"},\"rel_kinds\":{\"is_a\":\"child inherits parent fields\",\"contains\":\"tree position only\",\"made_from\":\"production step, nothing inherited\",\"link\":\"cross-layer reference\"},\"regions\":{\"EU-NWE\":\"North-West Europe\",\"EU-CEE\":\"Central and Eastern Europe\",\"EU-IT\":\"Italy\",\"EU-TR\":\"Türkiye\",\"CN-EXW\":\"China domestic\",\"CN-CFR\":\"China ports (CFR/CIF import, FOB export)\",\"SEA\":\"South-East Asia\",\"NEA\":\"North-East Asia\",\"IN-DOM\":\"India\",\"ME-FOB\":\"Middle East\",\"US-GULF\":\"US Gulf / US domestic\",\"AF-SA\":\"South Africa\"},\"price_observations\":0,\"how\":\"nwt_search(q) -> nwt_get(id) -> nwt_walk(id) / nwt_prices(id); nwt_get('type:<type>') explains a type once\"}","tok":287},{"tool":"nwt_search","args":{"q":"hdpe film"},"out":"{\"total\":4,\"hits\":[[\"sym:CMD/PET/PLA-PE/HDPE_FILM\",\"symbol\",\"HDPE film grade\"],[\"sym:CMD/PET/PLA-PE/HDPE_CFR_CHINA\",\"symbol\",\"CFR China HDPE film\"],[\"sym:CMD/PET/PLA-PE/HDPE_FILM_HMW\",\"symbol\",\"HDPE high-molecular-weight film\"],[\"sym:CMD/PET/PLA-PE/HDPE_FILM_MMW\",\"symbol\",\"HDPE medium-molecular-weight film\"]]}","tok":78},{"tool":"nwt_get","args":{"id":"type:variety"},"out":"{\"type\":\"variety\",\"layer\":\"plastics\",\"level\":4,\"parent\":\"is_a polymer\",\"what\":\"commercial kind of a polymer (HDPE, LDPE, PP homopolymer); has properties and market symbols\",\"count\":12,\"fields\":{\"name_ru\":\"Russian name (detail=full)\",\"name_en\":\"English name (shown as name)\",\"abbr\":\"abbreviation\",\"formula\":\"chemical formula\",\"repeat_unit\":\"polymer repeat unit\",\"description_ru\":\"Russian description (detail=full)\",\"properties\":\"measured properties by grade (detail=full) (in 2 of 12)\",\"sources\":\"source URLs (detail=full)\",\"recycled\":\"true for recycled material (in 1 of 12)\"},\"links\":{\"is_a\":\"is_a polymer x12\",\"made_from\":\"made_from monomer x1\",\"metrics\":\"link symbol x2\",\"priced_as\":\"link symbol x95\",\"produced_by\":\"link symbol x3\"},\"examples\":[\"PLX-VAR-HDPE\",\"PLX-VAR-LDPE\"]}","tok":195},{"tool":"nwt_get","args":{"id":"PLX-VAR-HDPE"},"out":"{\"id\":\"PLX-VAR-HDPE\",\"type\":\"variety\",\"name\":\"High-density polyethylene\",\"is_a\":\"PLX-POL-PE\",\"inherits\":[\"formula\",\"repeat_unit\"],\"abbr\":\"HDPE\",\"identifiers\":{\"cas_number\":\"9002-88-4\",\"hs_code\":\"390120\",\"resin_code\":2},\"ranges\":{\"density_kg_m3\":[950.0,960.0,\"kg/m3\"],\"melt_flow_rate\":[0.23,0.6,\"g/10 min\"],\"melting_temperature\":[130,135,\"C\"],\"tensile_stress_at_yield\":[23,23,\"MPa\"],\"strain_at_break\":[700,700,\"%\"],\"elongation_yield\":[9,9,\"%\"],\"tensile_modulus\":[900,900,\"MPa\"],\"shore_hardness\":[61,63,\"-\"],\"charpy_notched_impact\":[13,26,\"kJ/m2\"],\"vicat_softening_a50\":[74,74,\"C\"],\"dielectric_strength\":[20000000.0,20000000.0,\"V/m\"],\"processing_temp\":[220,260,\"C\"]},\"priced_as\":{\"sym:CMD/PET/PLA-PE/\":[\"HDPE_BLACK\",\"HDPE_BM\",\"HDPE_BM_LARGE\",\"HDPE_BM_SMALL\",\"HDPE_CFR_CHINA\",\"HDPE_CFR_SEA\",\"HDPE_FAS_HOUSTON\",\"HDPE_FD_NWE\",\"HDPE_FILM\",\"HDPE_FILM_HMW\",\"HDPE_FILM_MMW\",\"HDPE_IM\",\"HDPE_IM_CRATES\",\"HDPE_IM_THINWALL\",\"HDPE_INDIA\",\"HDPE_LATAM\",\"HDPE_MIDDLE_EAST\",\"HDPE_MONOFILAMENT\",\"HDPE_NATURAL\",\"HDPE_PIPE\"]},\"priced_as_total\":31,\"produced_by\":\"sym:CMD/PET/CPT-PLT/PE_LINE_HDPE\",\"price_series\":9}","tok":273},{"tool":"nwt_prices","args":{"id":"PLX-VAR-HDPE"},"out":"{\"id\":\"PLX-VAR-HDPE\",\"series_total\":9,\"cols\":[\"symbol\",\"region\",\"incoterm\",\"price_type\",\"material_state\",\"observations\"],\"series\":[[\"sym:CMD/PET/PLA-PE/HDPE_CFR_CHINA\",\"CN-CFR\",\"CFR\",\"assessment\",\"virgin\",0],[\"sym:CMD/PET/PLA-PE/HDPE_CFR_SEA\",\"SEA\",\"CFR\",\"assessment\",\"virgin\",0],[\"sym:CMD/PET/PLA-PE/HDPE_FAS_HOUSTON\",\"US-GULF\",\"FAS\",\"assessment\",\"virgin\",0],[\"sym:CMD/PET/PLA-PE/HDPE_FD_NWE\",\"EU-NWE\",\"FD\",\"assessment\",\"virgin\",0],[\"sym:CMD/PET/PLA-PE/HDPE_INDIA\",\"IN-DOM\",null,\"assessment\",\"virgin\",0],[\"sym:CMD/PET/PLA-PE/HDPE_LATAM\",null,null,\"assessment\",\"virgin\",0],[\"sym:CMD/PET/PLA-PE/HDPE_MIDDLE_EAST\",\"ME-FOB\",null,\"assessment\",\"virgin\",0],[\"sym:CMD/PET/PLA-PE/HDPE_TURKEY\",\"EU-TR\",null,\"assessment\",\"virgin\",0],[\"sym:CMD/PET/PLA-PE/HDPE_US_DOMESTIC\",\"US-GULF\",null,\"assessment\",\"virgin\",0]],\"note\":\"this graph build has no price observations yet: series definitions only\"}","tok":221},{"tool":"nwt_walk","args":{"id":"PLX-VAR-HDPE","direction":"up","depth":6},"out":"{\"from\":\"PLX-VAR-HDPE\",\"direction\":\"up\",\"rows\":[[1,\"PLX-POL-PE\",\"polymer\",\"Polyethylene\",\"has_variety\"],[2,\"PLX-MON-ETHYLENE\",\"monomer\",\"Ethylene\",\"converted_to\"],[3,\"PLX-INT-ETHANE\",\"intermediate\",\"Ethane\",\"converted_to\"],[3,\"PLX-INT-NAPHTHA\",\"intermediate\",\"Naphtha\",\"converted_to\"],[4,\"PLX-FEED-NATGAS\",\"feedstock\",\"Natural gas\",\"converted_to\"],[4,\"PLX-FEED-CRUDE\",\"feedstock\",\"Crude oil\",\"converted_to\"]]}","tok":102}],"defs_tok":828,"instr_tok":82,"all_plastics":49090,"all_catalogue":1318831,"fam_edges":95258,"fam_own":29477,"nodes_total":22916,"edges_total":120832,"hdpe_brief":273,"hdpe_full":949,"series":327,"obs":0}</script>
+<script>
+const D = JSON.parse(document.getElementById('data').textContent);
+const fmt = n => n.toLocaleString('ru-RU');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const pretty = s => JSON.stringify(typeof s === 'string' ? JSON.parse(s) : s, null, 1);
+const startTok = D.defs_tok + D.instr_tok;
+const qTok = D.steps.reduce((a, s) => a + s.tok, 0) + startTok;
+const allTok = D.all_plastics + D.all_catalogue;
+
+document.getElementById('tiles').innerHTML = [
+  ['', fmt(allTok), 'токенов, если отдать агенту все карточки сразу (' + fmt(D.nodes_total) + ' узлов)'],
+  ['', fmt(D.all_plastics), 'токенов только на пластики и химию'],
+  ['good', '≈' + fmt(qTok), 'токенов на типовой вопрос через наш MCP, вместе с описанием инструментов'],
+  ['good', '×' + Math.round(allTok / qTok), 'меньше, чем отдать всё']
+].map(([c, n, t]) => `<div class="tile ${c}"><span class="num">${n}</span><span class="cap">${t}</span></div>`).join('');
+
+const KIND = {is_a: 'is_a: разновидность, наследует поля', contains: 'contains: место в дереве', made_from: 'made_from: производится из, ничего не наследует', link: 'link: материал ↔ рыночный символ'};
+document.getElementById('legend').innerHTML = Object.entries(KIND).map(([k, t]) =>
+  `<span><svg viewBox="0 0 34 10" aria-hidden="true"><line x1="0" y1="5" x2="34" y2="5" class="edge on k-${k}"/></svg>${t}</span>`).join('');
+
+const UA = {feedstock: 'сырьё', intermediate: 'промежуточный продукт', monomer: 'мономер', polymer: 'полимер', variety: 'разновидность', substance: 'другое вещество',
+  collection: 'коллекция', category: 'категория', subcategory: 'подкатегория', symbol: 'рыночный символ', family: 'семейство данных', field: 'поле', data_domain: 'домен данных', field_category: 'группа полей'};
+const P = {feedstock: [100, 70], intermediate: [100, 160], monomer: [100, 250], polymer: [100, 340], variety: [100, 430], substance: [300, 495],
+  collection: [580, 70], category: [580, 160], subcategory: [580, 250], symbol: [380, 380], family: [640, 340], field: [640, 430],
+  data_domain: [800, 340], field_category: [800, 430]};
+const W = 136, H = 42, NS = 'http://www.w3.org/2000/svg';
+const svg = document.getElementById('graph');
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || svg).appendChild(e); return e; };
+
+const defs = el('defs', {});
+for (const k of Object.keys(KIND)) {
+  const m = el('marker', {id: 'm-' + k, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse'}, defs);
+  el('path', {d: 'M0,0 L10,5 L0,10 z', class: 'mk-' + k}, m);
+}
+el('text', {x: 100, y: 28, 'text-anchor': 'middle', class: 'layer-label'}).textContent = 'ПЛАСТИКИ (ПРОИЗВОДСТВО)';
+el('text', {x: 640, y: 28, 'text-anchor': 'middle', class: 'layer-label'}).textContent = 'КАТАЛОГ (КЛАССИФИКАЦИЯ)';
+
+// one line per pair of types; the strongest kind wins when a pair has several relations
+const RANK = {is_a: 0, made_from: 1, contains: 2, link: 3};
+const pairs = new Map();
+for (const [a, rel, b, n, kind] of D.edges) {
+  if (a === b) continue;
+  const key = [a, b].sort().join('|'), p = pairs.get(key);
+  if (!p) pairs.set(key, {a, b, kind, n, rels: [rel + ' ×' + fmt(n)]});
+  else { p.n += n; p.rels.push(rel + ' ×' + fmt(n)); if (RANK[kind] < RANK[p.kind]) Object.assign(p, {a, b, kind}); }
+}
+const clip = (x, y, tx, ty) => { const dx = tx - x, dy = ty - y, s = Math.min(Math.abs((W / 2 + 4) / (dx || 1e-9)), Math.abs((H / 2 + 4) / (dy || 1e-9))); return [x + dx * s, y + dy * s]; };
+const edgeEls = [];
+for (const p of pairs.values()) {
+  const [x1, y1] = P[p.a], [x2, y2] = P[p.b];
+  let d;
+  if (x1 === x2 && Math.abs(y2 - y1) > 100) {
+    // same column, skipping a level: bow out to the side so it does not cross the boxes between
+    const side = y2 > y1 ? -1 : 1, cx = x1 + side * (W / 2 + 40);
+    d = `M${x1 + side * W / 2},${y1} Q${cx},${(y1 + y2) / 2} ${x2 + side * W / 2},${y2}`;
+  } else {
+    const [sx, sy] = clip(x1, y1, x2, y2), [ex, ey] = clip(x2, y2, x1, y1);
+    d = `M${sx},${sy} L${ex},${ey}`;
+  }
+  const e = el('path', {d, class: `edge k-${p.kind}`, 'marker-end': `url(#m-${p.kind})`});
+  el('title', {}, e).textContent = `${p.a} → ${p.b}: ${p.rels.join(', ')}`;
+  edgeEls.push([e, p]);
+}
+const nodeEls = {};
+for (const [t, [x, y]] of Object.entries(P)) {
+  const g = el('g', {class: 'node', tabindex: 0, role: 'button', 'aria-label': `${t}, ${D.types[t].count} узлов`});
+  el('rect', {x: x - W / 2, y: y - H / 2, width: W, height: H, rx: 5}, g);
+  el('text', {x, y: y - 3, 'text-anchor': 'middle'}, g).textContent = t;
+  el('text', {x, y: y + 13, 'text-anchor': 'middle', class: 'cnt'}, g).textContent = fmt(D.types[t].count);
+  g.addEventListener('click', () => select(t));
+  g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(t); } });
+  nodeEls[t] = g;
+}
+
+let tab = 'type';
+function select(t) {
+  for (const [k, g] of Object.entries(nodeEls)) g.classList.toggle('sel', k === t);
+  for (const [e, p] of edgeEls) { const on = p.a === t || p.b === t; e.classList.toggle('on', on); e.classList.toggle('dim', !on); }
+  const T = D.types[t];
+  const panel = document.getElementById('panel');
+  panel.innerHTML = `<div class="head" style="gap:6px"><span class="eyebrow">${T.layer === 'plastics' ? 'пластики' : 'каталог'} · ${UA[t]}</span><h3><code>type:${t}</code></h3></div>
+    <p>${esc(T.what)}</p>
+    <div class="meta"><span class="chip">${fmt(T.count)} узлов</span><span class="chip tok">карточка типа ≈${T.card_tok} ток.</span><span class="chip tok">карточка узла ≈${T.example_tok} ток.</span></div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-type" aria-selected="${tab === 'type'}">Карточка типа</button>
+      <button role="tab" id="tab-node" aria-selected="${tab === 'node'}">Пример: ${esc(T.example.id)}</button></div>
+    <pre>${esc(pretty(tab === 'type' ? T.card : T.example))}</pre>`;
+  panel.querySelector('#tab-type').onclick = () => { tab = 'type'; select(t); };
+  panel.querySelector('#tab-node').onclick = () => { tab = 'node'; select(t); };
+}
+select('variety');
+
+const WHY = [
+  'Карта: какие есть типы, сколько их, как вложены, коды регионов. Агент читает её один раз в начале.',
+  'Поиск по названию: короткие строки [id, тип, название], а не полные карточки.',
+  'Карточка типа «разновидность»: что это и как читать такие узлы. Один раз на тип.',
+  'Карточка HDPE: только собственные данные. Формула унаследована от PE, поэтому не повторяется.',
+  'Ценовые ряды HDPE: регион, Incoterm, тип цены. Значений пока нет.',
+  'Цепочка вверх: HDPE → PE → этилен → этан / нафта → газ / нефть. Ответ на «что влияет на цену».'
+];
+const maxTok = Math.max(...D.steps.map(s => s.tok));
+document.getElementById('steps').innerHTML =
+  `<div class="step"><div class="row"><span class="n">0</span><span class="call">описание 5 инструментов + инструкция сервера</span><span class="chip tok">≈${startTok} ток.</span><span class="why">Агент получает это на старте сессии, ещё до вопроса.</span></div></div>` +
+  D.steps.map((s, i) => `<div class="step"><div class="row"><span class="n">${i + 1}</span><span class="call">${s.tool}(${esc(Object.entries(s.args).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(', '))})</span><span class="chip tok">≈${s.tok} ток.</span></div>
+    <div class="row"><span class="n"></span><span class="why">${WHY[i]}</span></div>
+    <div class="bar" aria-hidden="true"><i style="width:${Math.max(2, 100 * s.tok / maxTok)}%"></i></div>
+    <details><summary>Показать ответ сервера</summary><pre>${esc(pretty(s.out))}</pre></details></div>`).join('') +
+  `<div class="total"><span>Всего на вопрос</span><span class="mono">≈${fmt(qTok)} токенов</span></div>`;
+
+const hd = D.types.variety.example;
+const group = hd.priced_as ? Object.entries(hd.priced_as)[0] : null;
+document.getElementById('rules').innerHTML = [
+  ['is_a наследует, made_from нет', 'HDPE — разновидность PE (is_a): поля, совпадающие с PE, не повторяются. Этилен → PE — это производство (made_from): свойства этилена к PE не переходят, иначе агент смешал бы цены и характеристики.',
+    `<div class="cmp"><span>HDPE: <b>"is_a":"PLX-POL-PE"</b></span><span><b>"inherits":["formula","repeat_unit"]</b></span></div>`],
+  ['Поля семейств данных наследуются в два уровня', 'Все 1 881 семейство данных имеют 9 общих полей, а семейства одного домена (цены, справочники…) ещё 23–30 общих. Семейство показывает только свои поля.',
+    `<div class="cmp"><span>связей с полями: <b>${fmt(D.fam_edges)}</b></span><span>→ собственных: <b>${fmt(D.fam_own)}</b></span></div>`],
+  ['Общий префикс пишем один раз', 'Списки id группируются по префиксу. В карточке HDPE все рыночные символы лежат в одной подкатегории.',
+    group ? `<pre>${esc(JSON.stringify({[group[0]]: group[1].slice(0, 6).concat(group[1].length > 6 ? ['…'] : [])}))}</pre>` : ''],
+  ['Кратко по умолчанию', 'Русский текст, источники и свойства по маркам агент получает только с detail="full". Для большинства вопросов они не нужны.',
+    `<div class="cmp"><span>HDPE brief: <b>≈${D.hdpe_brief} ток.</b></span><span>full: <b>≈${D.hdpe_full} ток.</b></span></div>`]
+].map(([h, p, x]) => `<div class="rule"><h3>${h}</h3><p>${p}</p>${x}</div>`).join('');
+
+document.getElementById('todo').innerHTML = [
+  `Цены: в графе ${fmt(D.series)} описаний ценовых рядов и ${fmt(D.obs)} значений. NWT Kit пока не публикует пакет с ценами, поэтому <code>nwt_prices</code> показывает только описание рядов.`,
+  'Сервер работает локально (stdio). Для клиентов его нужно развернуть как удалённый MCP с авторизацией.',
+  'Размеры в токенах оценены как символы / 4. Точные числа даст count_tokens API.'
+].map(t => `<li>${t}</li>`).join('');
+</script>

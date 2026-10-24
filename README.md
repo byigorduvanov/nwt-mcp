@@ -32,6 +32,7 @@ Counts, links and inherited fields are computed from the graph, so a new `nwt up
 ```bash
 uv run nwt-mcp                       # stdio MCP server
 uv run nwt-mcp export cards          # write map, type cards, example node cards and TOKENS.md
+uv run nwt-mcp view                  # build/view.html: the kit's graph viewer + an "Агент" tab with every node's cards
 uv run pytest -q
 claude mcp add nwt-data -- uv run --directory /Users/atom/work/nwt/nwt-mcp nwt-mcp
 ```

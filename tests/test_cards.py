@@ -53,6 +53,9 @@ def test_search_ranks_exact_names_first():
     assert g.search("HDPE")["hits"][0][0] == "PLX-VAR-HDPE"
     assert g.search("polyethylene")["hits"][0][0] == "PLX-POL-PE"
     assert all(h[0].startswith("sym:CMD/PET/PLA-PE/") for h in g.search("film", under="sub:CMD/PET/PLA-PE")["hits"])
+    wrong_type = g.search("HDPE", type="polymer")
+    assert wrong_type["hits"][0][0] == "PLX-VAR-HDPE" and "no polymer" in wrong_type["note"]
+    assert "note" not in g.search("HDPE", type="variety")
 
 
 def test_unknown_id_says_how_to_find_one():

@@ -37,7 +37,8 @@ def nwt_map() -> str:
 @tool
 def nwt_search(q: str, type: str | None = None, under: str | None = None, limit: int = 10) -> str:
     """Find ids by name, abbreviation or code (all words must match). Returns [id, type, name] rows, best first.
-    type: only this node type (variety, polymer, symbol, subcategory, family, field...).
+    type: only this node type; if nothing matches, all types are searched. polymer = PE, PP, PVC, PS, PET, ABS;
+    variety = HDPE, LDPE, LLDPE, PP-HOMO/RCP/ICP, PVC-U/P, GPPS, HIPS, PET-BOTTLE, RPET. Usually omit it.
     under: only inside this catalogue node, e.g. 'sub:CMD/PET/PLA-PE' or 'cat:CMD/PET'."""
     return dumps(graph().search(q, type, under, limit))
 

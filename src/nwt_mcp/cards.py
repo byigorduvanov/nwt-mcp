@@ -217,6 +217,10 @@ class Graph:
             score += {"variety": 9, "polymer": 8, "monomer": 7, "subcategory": 6, "symbol": 5}.get(t, 0)
             hits.append((-score, len(self.name(i)), i))
         hits.sort()
+        if not hits and type:
+            # a wrong type guess (HDPE as polymer) must not cost the agent a second call
+            out = self.search(q, None, under, limit)
+            return {**out, "note": f"no {type} matches; showing all types"} if out["total"] else out
         return {"total": len(hits), "hits": [self.row(i) for *_, i in hits[:limit]]}
 
     def _under(self, i, path):

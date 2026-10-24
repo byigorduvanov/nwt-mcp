@@ -1,0 +1,21 @@
+{
+ "type": "field",
+ "layer": "catalogue",
+ "level": 4,
+ "parent": "in family",
+ "what": "column of a family record",
+ "count": 2899,
+ "fields": {
+  "data_type": "value type",
+  "description": "short description",
+  "unit": "trading unit, UN/CEFACT code (TNE tonne, KGM kg, C62 piece, CCY currency, IDX index) (in 1447 of 2899)"
+ },
+ "links": {
+  "field_category": "contains field_category x2899",
+  "in_families": "contains family x95258"
+ },
+ "examples": [
+  "fld:record_id",
+  "fld:record_version"
+ ]
+}

@@ -1,0 +1,23 @@
+{
+ "type": "feedstock",
+ "layer": "plastics",
+ "level": 0,
+ "what": "raw natural resource at the start of the chain (crude oil, gas, salt)",
+ "count": 3,
+ "fields": {
+  "name_ru": "Russian name (detail=full)",
+  "name_en": "English name (shown as name)",
+  "abbr": "abbreviation",
+  "formula": "chemical formula",
+  "repeat_unit": "polymer repeat unit",
+  "description_ru": "Russian description (detail=full)",
+  "sources": "source URLs (detail=full)"
+ },
+ "links": {
+  "used_for": "made_from intermediate x5"
+ },
+ "examples": [
+  "PLX-FEED-CRUDE",
+  "PLX-FEED-NATGAS"
+ ]
+}

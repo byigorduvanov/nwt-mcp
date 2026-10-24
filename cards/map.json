@@ -1,0 +1,31 @@
+{
+ "graph": "nwt-symbol-graph c549136b615f4eba4df39c68444a3f3322bd12a0",
+ "trees": {
+  "plastics (production)": "feedstock(3) > intermediate(10) > monomer(8) > polymer(6) > is_a > variety(12); substance(535) outside chain",
+  "catalogue (classification)": "collection(20) > category(118) > subcategory(614) > symbol(16790) | family(1881) > field(2899)",
+  "data kinds": "family is_a data_domain(6); field in field_category(14)",
+  "links": "material priced_as symbol; material produced_by plant symbol; symbol metric_of material"
+ },
+ "rel_kinds": {
+  "is_a": "child inherits parent fields",
+  "contains": "tree position only",
+  "made_from": "production step, nothing inherited",
+  "link": "cross-layer reference"
+ },
+ "regions": {
+  "EU-NWE": "North-West Europe",
+  "EU-CEE": "Central and Eastern Europe",
+  "EU-IT": "Italy",
+  "EU-TR": "Türkiye",
+  "CN-EXW": "China domestic",
+  "CN-CFR": "China ports (CFR/CIF import, FOB export)",
+  "SEA": "South-East Asia",
+  "NEA": "North-East Asia",
+  "IN-DOM": "India",
+  "ME-FOB": "Middle East",
+  "US-GULF": "US Gulf / US domestic",
+  "AF-SA": "South Africa"
+ },
+ "price_observations": 0,
+ "how": "nwt_search(q) -> nwt_get(id) -> nwt_walk(id) / nwt_prices(id); nwt_get('type:<type>') explains a type once"
+}

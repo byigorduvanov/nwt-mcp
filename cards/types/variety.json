@@ -1,0 +1,30 @@
+{
+ "type": "variety",
+ "layer": "plastics",
+ "level": 4,
+ "parent": "is_a polymer",
+ "what": "commercial kind of a polymer (HDPE, LDPE, PP homopolymer); has properties and market symbols",
+ "count": 12,
+ "fields": {
+  "name_ru": "Russian name (detail=full)",
+  "name_en": "English name (shown as name)",
+  "abbr": "abbreviation",
+  "formula": "chemical formula",
+  "repeat_unit": "polymer repeat unit",
+  "description_ru": "Russian description (detail=full)",
+  "properties": "measured properties by grade (detail=full) (in 2 of 12)",
+  "sources": "source URLs (detail=full)",
+  "recycled": "true for recycled material (in 1 of 12)"
+ },
+ "links": {
+  "is_a": "is_a polymer x12",
+  "made_from": "made_from monomer x1",
+  "metrics": "link symbol x2",
+  "priced_as": "link symbol x95",
+  "produced_by": "link symbol x3"
+ },
+ "examples": [
+  "PLX-VAR-HDPE",
+  "PLX-VAR-LDPE"
+ ]
+}

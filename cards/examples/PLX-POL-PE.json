@@ -1,0 +1,170 @@
+{
+ "id": "PLX-POL-PE",
+ "type": "polymer",
+ "name": "Polyethylene",
+ "abbr": "PE",
+ "formula": "(C2H4)n",
+ "repeat_unit": "–CH2–CH2–",
+ "identifiers": {
+  "cas_number": "9002-88-4",
+  "hs_code": "390110"
+ },
+ "ranges": {
+  "melt_flow_rate": [
+   0.25,
+   9.5,
+   "g/10 min"
+  ],
+  "density_kg_m3": [
+   919.0,
+   947,
+   "kg/m3"
+  ],
+  "tensile_modulus": [
+   200,
+   645,
+   "MPa"
+  ],
+  "tensile_stress_at_yield": [
+   9,
+   22,
+   "MPa"
+  ],
+  "dart_drop_impact": [
+   280,
+   280,
+   "g"
+  ],
+  "tensile_strength_md": [
+   27,
+   27,
+   "MPa"
+  ],
+  "tensile_strength_td": [
+   25,
+   25,
+   "MPa"
+  ],
+  "tensile_strain_at_break_md": [
+   200,
+   200,
+   "%"
+  ],
+  "tensile_strain_at_break_td": [
+   500,
+   500,
+   "%"
+  ],
+  "vicat_softening_temperature": [
+   93,
+   93,
+   "C"
+  ],
+  "peak_melting_point": [
+   108,
+   108,
+   "C"
+  ],
+  "haze": [
+   15,
+   15,
+   "%"
+  ],
+  "gloss_20deg": [
+   10,
+   10,
+   "-"
+  ],
+  "gloss_60deg": [
+   50,
+   50,
+   "-"
+  ],
+  "strain_at_yield": [
+   8,
+   14,
+   "%"
+  ],
+  "charpy_notched_impact": [
+   24,
+   24,
+   "kJ/m2"
+  ],
+  "charpy_notched_minus30": [
+   8,
+   8,
+   "kJ/m2"
+  ],
+  "vicat_a": [
+   120,
+   120,
+   "C"
+  ],
+  "vicat_b": [
+   70,
+   70,
+   "C"
+  ],
+  "tensile_stress": [
+   20.3,
+   20.3,
+   "MPa"
+  ],
+  "stress_at_break": [
+   37,
+   37,
+   "MPa"
+  ],
+  "strain_at_break": [
+   780,
+   780,
+   "%"
+  ],
+  "flexural_modulus": [
+   660,
+   660,
+   "MPa"
+  ],
+  "izod_impact": [
+   23,
+   23,
+   "kJ/m2"
+  ],
+  "shore_d": [
+   61,
+   61,
+   "-"
+  ],
+  "clte_parallel": [
+   180,
+   180,
+   "E-6/K"
+  ]
+ },
+ "made_from": "PLX-MON-ETHYLENE",
+ "metrics": {
+  "sym:CMD/PET/PLA-PE/": [
+   "PE_CAPACITY_ADDITIONS",
+   "PE_CONVERTER_DEMAND",
+   "PE_EXPORTS_US",
+   "PE_IMPORTS_CHINA",
+   "PE_OPERATING_RATE",
+   "PE_PRODUCER_MARGIN"
+  ]
+ },
+ "priced_as": {
+  "sym:CMD/PET/PLA-PE/": [
+   "PE_CONTRACT_EU_MONTHLY",
+   "PE_FUT_DALIAN_LLDPE"
+  ]
+ },
+ "produced_by": "sym:CMD/PET/CPT-PLT/PE_LINE_SWING",
+ "varieties": {
+  "": [
+   "PLX-VAR-HDPE",
+   "PLX-VAR-LDPE",
+   "PLX-VAR-LLDPE"
+  ]
+ },
+ "price_series": 1
+}

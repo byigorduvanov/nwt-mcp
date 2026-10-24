@@ -1,0 +1,22 @@
+{
+ "type": "subcategory",
+ "layer": "catalogue",
+ "level": 2,
+ "parent": "in category",
+ "what": "product group; owns market symbols and data families (Polyethylene)",
+ "count": 614,
+ "fields": {
+  "code": "code inside parent",
+  "description": "short description",
+  "realtime": "true if data is published in real time"
+ },
+ "links": {
+  "families": "contains family x1881",
+  "in": "contains category x614",
+  "symbols": "contains symbol x16790"
+ },
+ "examples": [
+  "sub:EQ/EQC/SHR",
+  "sub:EQ/EQC/DR"
+ ]
+}

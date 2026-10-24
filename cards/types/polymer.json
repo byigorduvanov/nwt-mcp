@@ -1,0 +1,27 @@
+{
+ "type": "polymer",
+ "layer": "plastics",
+ "level": 3,
+ "what": "polymer family (PE, PP, PVC, PS, PET, ABS)",
+ "count": 6,
+ "fields": {
+  "name_ru": "Russian name (detail=full)",
+  "name_en": "English name (shown as name)",
+  "abbr": "abbreviation",
+  "formula": "chemical formula",
+  "repeat_unit": "polymer repeat unit",
+  "description_ru": "Russian description (detail=full)",
+  "sources": "source URLs (detail=full)"
+ },
+ "links": {
+  "made_from": "made_from monomer x9",
+  "metrics": "link symbol x16",
+  "priced_as": "link symbol x85",
+  "produced_by": "link symbol x6",
+  "varieties": "is_a variety x12"
+ },
+ "examples": [
+  "PLX-POL-PE",
+  "PLX-POL-PP"
+ ]
+}

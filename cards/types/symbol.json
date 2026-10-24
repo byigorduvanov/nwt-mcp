@@ -1,0 +1,48 @@
+{
+ "type": "symbol",
+ "layer": "catalogue",
+ "level": 3,
+ "parent": "in subcategory",
+ "what": "one market product/quote that can have prices (HDPE film CFR China)",
+ "count": 16790,
+ "fields": {
+  "code": "code inside parent",
+  "unit": "trading unit, UN/CEFACT code (TNE tonne, KGM kg, C62 piece, CCY currency, IDX index)",
+  "class": "symbol class: series (priced quote), grade, substance, metric, futures, asset, trade, policy",
+  "base": "product the symbol is about",
+  "region": "region code (see nwt_map regions)",
+  "basis": "delivery basis as written in the symbol",
+  "incoterm": "Incoterm (FOB, CFR, CIF...)",
+  "price_type": "assessment, contract, spot..."
+ },
+ "links": {
+  "in": "contains subcategory x16790",
+  "metric_of": "link variety x2",
+  "plant_of": "link variety x3",
+  "prices": "link variety x95"
+ },
+ "examples": [
+  "sym:EQ/EQC/SHR/COMMON",
+  "sym:EQ/EQC/SHR/PREF"
+ ],
+ "classes": {
+  "grade": 647,
+  "series": 301,
+  "substance": 289,
+  "metric": 109,
+  "asset": 61,
+  "trade": 54,
+  "futures": 26,
+  "policy": 9
+ },
+ "units": {
+  "C62": 6900,
+  "TNE": 3002,
+  "CCY": 2780,
+  "P1": 1143,
+  "IDX": 491,
+  "SHR": 456,
+  "KGM": 381,
+  "MWH": 326
+ }
+}

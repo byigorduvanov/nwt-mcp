@@ -1,0 +1,27 @@
+{
+ "type": "monomer",
+ "layer": "plastics",
+ "level": 2,
+ "what": "building block that is polymerised (ethylene, propylene, styrene)",
+ "count": 8,
+ "fields": {
+  "name_ru": "Russian name (detail=full)",
+  "name_en": "English name (shown as name)",
+  "abbr": "abbreviation",
+  "formula": "chemical formula",
+  "repeat_unit": "polymer repeat unit",
+  "description_ru": "Russian description (detail=full)",
+  "sources": "source URLs (detail=full)"
+ },
+ "links": {
+  "made_from": "made_from monomer x1",
+  "metrics": "link symbol x11",
+  "priced_as": "link symbol x62",
+  "produced_by": "link symbol x5",
+  "used_for": "made_from variety x1"
+ },
+ "examples": [
+  "PLX-MON-ETHYLENE",
+  "PLX-MON-PROPYLENE"
+ ]
+}

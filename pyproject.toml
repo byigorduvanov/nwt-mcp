@@ -1,0 +1,24 @@
+[project]
+name = "nwt-mcp"
+version = "0.1.0"
+description = "MCP server: compact cards over the NWT symbol graph"
+authors = [
+    { name = "byigorduvanov", email = "byigorduvanovbit@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "mcp>=2.3.0",
+]
+
+[project.scripts]
+nwt-mcp = "nwt_mcp:main"
+
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "anyio>=4.15.1",
+    "pytest>=9.1.1",
+]

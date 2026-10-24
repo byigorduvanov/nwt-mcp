@@ -1,0 +1,16 @@
+{
+ "type": "data_domain",
+ "layer": "catalogue",
+ "what": "kind of data family (pricing, reference, events...): fields shared by all its families",
+ "count": 6,
+ "fields": {
+  "cadence": "how often data is published"
+ },
+ "links": {
+  "families": "is_a family x1881"
+ },
+ "examples": [
+  "dom:reference",
+  "dom:pricing"
+ ]
+}

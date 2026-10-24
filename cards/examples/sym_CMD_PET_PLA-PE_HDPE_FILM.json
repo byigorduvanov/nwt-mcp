@@ -1,0 +1,10 @@
+{
+ "id": "sym:CMD/PET/PLA-PE/HDPE_FILM",
+ "type": "symbol",
+ "name": "HDPE film grade",
+ "unit": "TNE",
+ "class": "grade",
+ "base": "HDPE_FILM",
+ "in": "sub:CMD/PET/PLA-PE",
+ "prices": "PLX-VAR-HDPE"
+}

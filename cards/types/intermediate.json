@@ -1,0 +1,27 @@
+{
+ "type": "intermediate",
+ "layer": "plastics",
+ "level": 1,
+ "what": "processed chemical between feedstock and monomer (naphtha, ethane, benzene)",
+ "count": 10,
+ "fields": {
+  "name_ru": "Russian name (detail=full)",
+  "name_en": "English name (shown as name)",
+  "abbr": "abbreviation",
+  "formula": "chemical formula",
+  "repeat_unit": "polymer repeat unit",
+  "description_ru": "Russian description (detail=full)",
+  "sources": "source URLs (detail=full)"
+ },
+ "links": {
+  "made_from": "made_from monomer x3",
+  "metrics": "link symbol x5",
+  "priced_as": "link symbol x52",
+  "produced_by": "link symbol x4",
+  "used_for": "made_from monomer x10"
+ },
+ "examples": [
+  "PLX-INT-NAPHTHA",
+  "PLX-INT-ETHANE"
+ ]
+}

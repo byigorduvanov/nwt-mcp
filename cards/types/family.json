@@ -1,0 +1,45 @@
+{
+ "type": "family",
+ "layer": "catalogue",
+ "level": 3,
+ "parent": "in subcategory",
+ "what": "data product of a subcategory: one record schema (Polyethylene: Prices)",
+ "count": 1881,
+ "fields": {
+  "summary": "what the family covers",
+  "cadence": "how often data is published",
+  "realtime": "true if data is published in real time"
+ },
+ "links": {
+  "domain": "is_a data_domain x1881",
+  "fields": "contains field x95258",
+  "in": "contains subcategory x1881"
+ },
+ "examples": [
+  "fam:nwt-eq-eqc-shr-reference",
+  "fam:nwt-eq-eqc-shr-pricing"
+ ],
+ "inherited_fields": {
+  "all families": {
+   "fld:": [
+    "as_of_timestamp",
+    "effective_from",
+    "effective_to",
+    "entity_id",
+    "product_code",
+    "record_id",
+    "record_status",
+    "record_version",
+    "source_type"
+   ]
+  },
+  "per domain": {
+   "dom:reference": 28,
+   "dom:pricing": 30,
+   "dom:fundamentals": 23,
+   "dom:events": 25,
+   "dom:risk": 24,
+   "dom:documents": 28
+  }
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "type": "substance",
+ "layer": "plastics",
+ "what": "other traded chemical outside the main chain; linked only to market symbols",
+ "count": 535,
+ "fields": {
+  "name_en": "English name (shown as name)",
+  "name_ru": "Russian name (detail=full)",
+  "abbr": "abbreviation",
+  "subcategory": "catalogue subcategory code"
+ },
+ "links": {
+  "metrics": "link symbol x27",
+  "priced_as": "link symbol x972",
+  "produced_by": "link symbol x1"
+ },
+ "examples": [
+  "PLX-SUB-C9-AROMATICS",
+  "PLX-SUB-MESITYLENE"
+ ]
+}

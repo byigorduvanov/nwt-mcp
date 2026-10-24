@@ -1,0 +1,16 @@
+{
+ "type": "field_category",
+ "layer": "catalogue",
+ "what": "group of fields by meaning (identifiers, prices, technical)",
+ "count": 14,
+ "fields": {
+  "description": "short description"
+ },
+ "links": {
+  "fields": "contains field x2899"
+ },
+ "examples": [
+  "fcat:technical",
+  "fcat:identifier"
+ ]
+}

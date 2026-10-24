@@ -1,0 +1,70 @@
+{
+ "id": "PLX-MON-ETHYLENE",
+ "type": "monomer",
+ "name": "Ethylene",
+ "formula": "C2H4",
+ "identifiers": {
+  "cas_number": "74-85-1",
+  "un_number": "1962",
+  "hs_code": "290121"
+ },
+ "ranges": {
+  "molar_mass": [
+   28.05,
+   28.05,
+   "g/mol"
+  ],
+  "boiling_point": [
+   -104.0,
+   -102.4,
+   "C"
+  ],
+  "melting_temperature": [
+   -169.2,
+   -169.0,
+   "C"
+  ],
+  "flash_point": [
+   -100,
+   -100,
+   "C"
+  ]
+ },
+ "made_from": {
+  "": [
+   "PLX-INT-ETHANE",
+   "PLX-INT-NAPHTHA"
+  ]
+ },
+ "metrics": {
+  "sym:CMD/PET/OLE-C2C3/": [
+   "ETHYLENE_CAPACITY_ADDITIONS",
+   "ETHYLENE_NAPHTHA_MARGIN",
+   "ETHYLENE_PROPYLENE_SPREAD"
+  ]
+ },
+ "priced_as": {
+  "sym:CMD/PET/OLE-C2C3/": [
+   "ETHYLENE",
+   "ETHYLENE_ASIA_CFR_NEA",
+   "ETHYLENE_ASIA_CFR_SEA",
+   "ETHYLENE_CHINA_DOMESTIC",
+   "ETHYLENE_FUT_DALIAN",
+   "ETHYLENE_INDIA",
+   "ETHYLENE_MIDDLE_EAST",
+   "ETHYLENE_NWE_CONTRACT",
+   "ETHYLENE_NWE_SPOT",
+   "ETHYLENE_USGC_CONTRACT",
+   "ETHYLENE_USGC_SPOT"
+  ]
+ },
+ "used_for": {
+  "": [
+   "PLX-INT-EDC",
+   "PLX-INT-EO",
+   "PLX-INT-ETHYLBENZENE",
+   "PLX-POL-PE"
+  ]
+ },
+ "price_series": 10
+}

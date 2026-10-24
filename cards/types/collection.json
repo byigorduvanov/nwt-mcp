@@ -1,0 +1,18 @@
+{
+ "type": "collection",
+ "layer": "catalogue",
+ "level": 0,
+ "what": "top section of the NWT data catalogue (Commodities, Equity, Debt...)",
+ "count": 20,
+ "fields": {
+  "code": "code inside parent",
+  "description": "short description"
+ },
+ "links": {
+  "categories": "contains category x118"
+ },
+ "examples": [
+  "col:EQ",
+  "col:FI"
+ ]
+}

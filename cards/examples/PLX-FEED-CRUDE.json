@@ -1,0 +1,26 @@
+{
+ "id": "PLX-FEED-CRUDE",
+ "type": "feedstock",
+ "name": "Crude oil",
+ "identifiers": {
+  "hs_code": "270900"
+ },
+ "ranges": {
+  "api_gravity": [
+   38.06,
+   38.06,
+   "API degree"
+  ],
+  "sulfur_content": [
+   0.37,
+   0.37,
+   "wt%"
+  ],
+  "sulfur_content_max": [
+   0.42,
+   0.42,
+   "wt%"
+  ]
+ },
+ "used_for": "PLX-INT-NAPHTHA"
+}

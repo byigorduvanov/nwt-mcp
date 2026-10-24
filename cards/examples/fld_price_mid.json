@@ -1,0 +1,34 @@
+{
+ "id": "fld:price_mid",
+ "type": "field",
+ "name": "Price Mid",
+ "data_type": "number",
+ "unit": "currency per unit identified by unit_code",
+ "description": "Mid-point of the assessed range.",
+ "field_category": "fcat:price",
+ "in_families": {
+  "fam:": [
+   "nwt-alm-col-win-pricing",
+   "nwt-cmd-agr-agf-inp-pricing",
+   "nwt-cmd-agr-for-lmb-pricing",
+   "nwt-cmd-agr-for-plp-pricing",
+   "nwt-cmd-agr-grn-crn-pricing",
+   "nwt-cmd-agr-grn-rce-pricing",
+   "nwt-cmd-agr-grn-wht-pricing",
+   "nwt-cmd-agr-liv-ctl-pricing",
+   "nwt-cmd-agr-liv-dry-pricing",
+   "nwt-cmd-agr-liv-hog-pricing",
+   "nwt-cmd-agr-liv-plt-pricing",
+   "nwt-cmd-agr-oil-plm-pricing",
+   "nwt-cmd-agr-oil-rap-pricing",
+   "nwt-cmd-agr-oil-soy-pricing",
+   "nwt-cmd-agr-oil-spo-pricing",
+   "nwt-cmd-agr-prd-frv-pricing",
+   "nwt-cmd-agr-prd-nps-pricing",
+   "nwt-cmd-agr-sft-coc-pricing",
+   "nwt-cmd-agr-sft-cof-pricing",
+   "nwt-cmd-agr-sft-cot-pricing"
+  ]
+ },
+ "in_families_total": 95
+}

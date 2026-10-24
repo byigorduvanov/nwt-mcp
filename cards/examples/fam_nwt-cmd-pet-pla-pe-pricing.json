@@ -1,0 +1,39 @@
+{
+ "id": "fam:nwt-cmd-pet-pla-pe-pricing",
+ "type": "family",
+ "name": "Polyethylene: Prices, Quotes & Curves",
+ "is_a": "dom:pricing",
+ "summary": "Pricing & Markets for hDPE, LDPE, LLDPE and metallocene grades by application. Covers 75 enumerated products.",
+ "cadence": "Real time, intraday and daily",
+ "realtime": true,
+ "fields": {
+  "fld:": [
+   "assessment_id",
+   "assessment_timestamp",
+   "assessment_type",
+   "benchmark_price",
+   "contract_month",
+   "contract_price",
+   "curve_point_date",
+   "differential_to_benchmark",
+   "export_parity_price",
+   "forward_price",
+   "futures_price",
+   "import_parity_price",
+   "margin_vs_feedstock",
+   "netback_value",
+   "open_interest",
+   "physical_premium",
+   "price_high",
+   "price_low",
+   "price_mid",
+   "spot_price",
+   "tenor"
+  ]
+ },
+ "inherits_fields": {
+  "type:family": 9,
+  "dom:pricing": 30
+ },
+ "in": "sub:CMD/PET/PLA-PE"
+}

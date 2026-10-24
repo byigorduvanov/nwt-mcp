@@ -1,0 +1,42 @@
+{
+ "id": "sub:CMD/PET/PLA-PE",
+ "type": "subcategory",
+ "name": "Polyethylene",
+ "description": "HDPE, LDPE, LLDPE and metallocene grades by application.",
+ "realtime": true,
+ "families": {
+  "fam:": [
+   "nwt-cmd-pet-pla-pe-events",
+   "nwt-cmd-pet-pla-pe-fundamentals",
+   "nwt-cmd-pet-pla-pe-pricing",
+   "nwt-cmd-pet-pla-pe-reference",
+   "nwt-cmd-pet-pla-pe-risk"
+  ]
+ },
+ "in": "cat:CMD/PET",
+ "symbols": {
+  "sym:CMD/PET/PLA-PE/": [
+   "EAA",
+   "ELASTOMER_POE",
+   "EMA",
+   "EVA",
+   "EVA_FILM",
+   "EVA_FOAM",
+   "EVA_HOT_MELT",
+   "EVA_SOLAR",
+   "HDPE_BLACK",
+   "HDPE_BM",
+   "HDPE_BM_LARGE",
+   "HDPE_BM_SMALL",
+   "HDPE_CFR_CHINA",
+   "HDPE_CFR_SEA",
+   "HDPE_FAS_HOUSTON",
+   "HDPE_FD_NWE",
+   "HDPE_FILM",
+   "HDPE_FILM_HMW",
+   "HDPE_FILM_MMW",
+   "HDPE_IM"
+  ]
+ },
+ "symbols_total": 75
+}

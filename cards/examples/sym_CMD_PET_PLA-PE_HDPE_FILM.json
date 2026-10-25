@@ -6,5 +6,6 @@
  "class": "grade",
  "base": "HDPE_FILM",
  "in": "sub:CMD/PET/PLA-PE",
- "prices": "PLX-VAR-HDPE"
+ "prices": "PLX-VAR-HDPE",
+ "price_series": 2
 }

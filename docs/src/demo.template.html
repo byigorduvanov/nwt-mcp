@@ -1,0 +1,306 @@
+<title>NWT Graph Cards</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<style>
+/* Layout: one reading column; the type map sits beside its card panel and stacks on phones. */
+:root {
+  --bg: #f5f7f8; --surface: #ffffff; --fg: #17232b; --muted: #5b6b75; --line: #d5dde2;
+  --accent: #155e86; --accent-soft: #e2eef5;
+  --k-isa: #155e86; --k-contains: #7d8b94; --k-made: #b0650e; --k-link: #18806f;
+  --code-bg: #eef2f4;
+  --f-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #10171c; --surface: #172129; --fg: #e3eaee; --muted: #93a3ad; --line: #2b3a44;
+  --accent: #6fb6e0; --accent-soft: #1b3445;
+  --k-isa: #6fb6e0; --k-contains: #8796a0; --k-made: #e39a45; --k-link: #4cc2ad; --code-bg: #0c1216; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #10171c; --surface: #172129; --fg: #e3eaee; --muted: #93a3ad; --line: #2b3a44;
+  --accent: #6fb6e0; --accent-soft: #1b3445;
+  --k-isa: #6fb6e0; --k-contains: #8796a0; --k-made: #e39a45; --k-link: #4cc2ad; --code-bg: #0c1216; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 32px 64px }
+main { max-width: 1120px; margin: 0 auto; display: grid; gap: 56px }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; line-height: 1.15; margin: 0 }
+h1 { font-size: clamp(2rem, 5vw, 3rem) }
+h2 { font-size: 1.6rem }
+h3 { font-size: 1.1rem }
+p { margin: 0; max-width: 68ch }
+code, .mono { font-family: var(--f-mono); font-size: .88em }
+.eyebrow { font: 500 .75rem/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+section { display: grid; gap: 20px; min-width: 0 }
+.lede { font-size: 1.15rem; color: var(--muted) }
+.head { display: grid; gap: 14px }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 6px; align-content: start }
+.tile .num { font: 700 2rem/1.1 var(--f-display); font-variant-numeric: tabular-nums }
+.tile.good .num { color: var(--k-link) }
+.tile .cap { color: var(--muted); font-size: .9rem }
+.problem { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px }
+.problem div { display: grid; gap: 6px; align-content: start }
+.problem b { font-family: var(--f-display); font-size: 1.05rem }
+.problem p { color: var(--muted); font-size: .95rem }
+/* graph needs the full width to stay readable; the card panel follows below it */
+.map { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px }
+.svgwrap { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px; overflow-x: auto }
+svg { display: block; width: 100%; min-width: 640px; height: auto }
+.node rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.2 }
+.node text { fill: var(--fg); font: 600 13px var(--f-body) }
+.node .cnt { fill: var(--muted); font: 400 11px var(--f-mono) }
+.node { cursor: pointer }
+.node:hover rect, .node:focus-visible rect { stroke: var(--accent) }
+.node.sel rect { stroke: var(--accent); stroke-width: 2.4; fill: var(--accent-soft) }
+.node:focus { outline: none }
+.layer-label { fill: var(--muted); font: 500 11px var(--f-mono); letter-spacing: .08em }
+.edge { fill: none; stroke-width: 1.6; opacity: .55; transition: opacity .15s }
+.edge.on { opacity: 1; stroke-width: 2.4 }
+.edge.dim { opacity: .12 }
+.k-is_a { stroke: var(--k-isa) } .k-contains { stroke: var(--k-contains) }
+.k-made_from { stroke: var(--k-made); stroke-dasharray: 6 4 } .k-link { stroke: var(--k-link); stroke-dasharray: 2 4 }
+.mk-is_a { fill: var(--k-isa) } .mk-contains { fill: var(--k-contains) } .mk-made_from { fill: var(--k-made) } .mk-link { fill: var(--k-link) }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: .88rem; color: var(--muted) }
+.legend span { display: inline-flex; align-items: center; gap: 8px }
+.legend svg { width: 34px; min-width: 0; height: 10px }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 12px; min-width: 0 }
+.panel .meta { display: flex; flex-wrap: wrap; gap: 6px }
+.chip { font: 500 .75rem/1 var(--f-mono); padding: 5px 8px; border-radius: 4px; background: var(--code-bg); color: var(--muted); white-space: nowrap }
+.chip.tok { background: var(--accent-soft); color: var(--accent) }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line) }
+.tabs button { font: 500 .85rem var(--f-body); color: var(--muted); background: none; border: 0; border-bottom: 2px solid transparent; padding: 6px 10px; cursor: pointer }
+.tabs button[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent) }
+.tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+pre { margin: 0; background: var(--code-bg); border-radius: 4px; padding: 12px; font: 12.5px/1.5 var(--f-mono); overflow: auto; max-height: 420px; white-space: pre-wrap; word-break: break-word }
+.steps { display: grid; gap: 10px }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; gap: 8px; min-width: 0 }
+.step .row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px }
+.step .n { font: 700 1rem var(--f-display); color: var(--muted); font-variant-numeric: tabular-nums; min-width: 1.4em }
+.step .why { color: var(--muted); font-size: .92rem; flex: 1 1 260px }
+.step .call { font-family: var(--f-mono); font-size: .88rem; overflow-wrap: anywhere }
+.step .bar { height: 6px; background: var(--code-bg); border-radius: 3px; overflow: hidden }
+.step .bar i { display: block; height: 100%; background: var(--accent) }
+details summary { cursor: pointer; color: var(--accent); font-size: .88rem }
+details[open] summary { margin-bottom: 8px }
+.total { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-family: var(--f-display); font-size: 1.15rem; padding: 4px 2px }
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px }
+.rule { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 10px; align-content: start; min-width: 0 }
+.rule p { color: var(--muted); font-size: .95rem }
+.cmp { display: flex; flex-wrap: wrap; gap: 6px 14px; font-family: var(--f-mono); font-size: .88rem }
+.cmp b { color: var(--fg) }
+.try { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px }
+.try ol, .try ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px }
+.note { border-left: 3px solid var(--k-made); padding: 4px 0 4px 14px; color: var(--muted) }
+@media (prefers-reduced-motion: reduce) { .edge { transition: none } }
+</style>
+
+<main>
+  <header class="head">
+    <span class="eyebrow">NWT · дані для AI-агентів · MCP</span>
+    <h1>Картки графа NWT</h1>
+    <p class="lede">Як чужий AI-агент знаходить наші дані про пластики й ринкові символи швидко і дешево: не отримує весь каталог одразу, а спускається від карти до потрібної картки.</p>
+  </header>
+
+  <section aria-labelledby="h-problem">
+    <h2 id="h-problem">Проблема</h2>
+    <div class="problem">
+      <div><b>Агент починає з нуля</b><p>Клієнт підключає свого агента (Claude, ChatGPT, Cursor) до нас через MCP. У кожній новій розмові агент нічого не знає про наші дані.</p></div>
+      <div><b>Пам'ять агента мала і платна</b><p>Усе, що ми йому даємо, займає контекст. Кожен токен коштує грошей і часу, а зайве заважає агенту думати.</p></div>
+      <div><b>Дані треба зрозуміти, а не лише знайти</b><p>EUR/кг чи USD/т, CFR чи FOB, HDPE — це різновид PE, а виробляють його з етилену. Без цього агент помиляється впевнено.</p></div>
+    </div>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section aria-labelledby="h-map">
+    <div class="head">
+      <h2 id="h-map">Карта типів і картки</h2>
+      <p class="lede">14 типів вузлів у двох деревах. Натисніть тип: праворуч з'явиться його картка (що це, які поля, зв'язки) і приклад картки вузла. Це те, що агент отримує через <code>nwt_get</code>.</p>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="map">
+      <div class="svgwrap"><svg id="graph" viewBox="0 0 880 540" role="img" aria-label="Типи вузлів графа NWT і зв'язки між ними"></svg></div>
+      <div class="panel" id="panel" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-steps">
+    <div class="head">
+      <h2 id="h-steps">Одне питання, крок за кроком</h2>
+      <p class="lede">«Скільки коштує HDPE плівка в Європі і що впливає на ціну?» Нижче — справжні відповіді сервера на кожен виклик і їхній розмір.</p>
+    </div>
+    <div class="steps" id="steps"></div>
+  </section>
+
+  <section aria-labelledby="h-rules">
+    <h2 id="h-rules">Чотири правила, які економлять токени</h2>
+    <div class="rules" id="rules"></div>
+  </section>
+
+  <section aria-labelledby="h-bench">
+    <div class="head">
+      <h2 id="h-bench">Перевірено на 300 сесіях</h2>
+      <p class="lede">100 питань від різних клієнтів (закупівельник, трейдер, аналітик, технолог, дата-інженер, переробник) п'ятьма мовами. Кожне — окрема сесія Claude, яка бачить лише наш MCP. Три прогони: до виправлень і після двох раундів виправлень.</p>
+    </div>
+    <div class="tiles" id="bench-tiles"></div>
+    <p>Тест знайшов 11 вад сервера, наприклад: полімер «без цін», хоча ціни є в його різновидів; назва замість коду давала помилку; список символів обрізав найважливіші позиції. Усі виправлено. Повний звіт з кожним питанням і відповіддю: <a href="https://claude.ai/artifact/PkkvUJQBDrUdLJn2a9pQVp" target="_blank" rel="noopener">звіт про тест</a>.</p>
+  </section>
+
+  <section aria-labelledby="h-try">
+    <h2 id="h-try">Як спробувати і що ще не готово</h2>
+    <div class="try">
+      <div class="rule">
+        <h3>Спробувати</h3>
+        <ol>
+          <li>Відкрити нову сесію Claude Code у папці <code>~/work/nwt</code>: сервер <code>nwt-data</code> підключено на рівні проєкту.</li>
+          <li>Запитати звичайною мовою, наприклад «з чого роблять ПЕТ» або «які цінові ряди є для HDPE в Європі».</li>
+          <li>Код сервера, тести і тестовий стенд: <code>~/work/nwt/nwt-mcp</code> (GitHub: byigorduvanov/nwt-mcp), запуск тестів <code>uv run pytest -q</code>.</li>
+          <li>Переглядач графа з вкладкою «Агент» (картки, які отримує агент, для будь-якого вузла): <code>uv run nwt-mcp view</code>.</li>
+        </ol>
+      </div>
+      <div class="rule">
+        <h3>Ще не готово</h3>
+        <ul id="todo"></ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script type="application/json" id="data">__DATA__</script>
+<script>
+const D = JSON.parse(document.getElementById('data').textContent);
+const fmt = n => n.toLocaleString('uk-UA');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const pretty = s => JSON.stringify(typeof s === 'string' ? JSON.parse(s) : s, null, 1);
+const startTok = D.defs_tok + D.instr_tok;
+const qTok = D.steps.reduce((a, s) => a + s.tok, 0) + startTok;
+const allTok = D.all_plastics + D.all_catalogue;
+
+document.getElementById('tiles').innerHTML = [
+  ['', fmt(allTok), 'токенів, якщо віддати агенту всі картки одразу (' + fmt(D.nodes_total) + ' вузлів)'],
+  ['', fmt(D.all_plastics), 'токенів лише на пластики й хімію'],
+  ['good', '≈' + fmt(qTok), 'токенів на типове питання через наш MCP, разом з описом інструментів'],
+  ['good', '×' + Math.round(allTok / qTok), 'менше, ніж віддати все']
+].map(([c, n, t]) => `<div class="tile ${c}"><span class="num">${n}</span><span class="cap">${t}</span></div>`).join('');
+
+const KIND = {is_a: 'is_a: різновид, успадковує поля', contains: 'contains: місце в дереві', made_from: 'made_from: виробляється з, нічого не успадковує', link: 'link: матеріал ↔ ринковий символ'};
+document.getElementById('legend').innerHTML = Object.entries(KIND).map(([k, t]) =>
+  `<span><svg viewBox="0 0 34 10" aria-hidden="true"><line x1="0" y1="5" x2="34" y2="5" class="edge on k-${k}"/></svg>${t}</span>`).join('');
+
+const UA = {feedstock: 'сировина', intermediate: 'проміжний продукт', monomer: 'мономер', polymer: 'полімер', variety: 'різновид', substance: 'інша речовина',
+  collection: 'колекція', category: 'категорія', subcategory: 'підкатегорія', symbol: 'ринковий символ', family: 'сім\'я даних', field: 'поле', data_domain: 'домен даних', field_category: 'група полів'};
+const P = {feedstock: [100, 70], intermediate: [100, 160], monomer: [100, 250], polymer: [100, 340], variety: [100, 430], substance: [300, 495],
+  collection: [580, 70], category: [580, 160], subcategory: [580, 250], symbol: [380, 380], family: [640, 340], field: [640, 430],
+  data_domain: [800, 340], field_category: [800, 430]};
+const W = 136, H = 42, NS = 'http://www.w3.org/2000/svg';
+const svg = document.getElementById('graph');
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || svg).appendChild(e); return e; };
+
+const defs = el('defs', {});
+for (const k of Object.keys(KIND)) {
+  const m = el('marker', {id: 'm-' + k, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse'}, defs);
+  el('path', {d: 'M0,0 L10,5 L0,10 z', class: 'mk-' + k}, m);
+}
+el('text', {x: 100, y: 28, 'text-anchor': 'middle', class: 'layer-label'}).textContent = 'ПЛАСТИКИ (ВИРОБНИЦТВО)';
+el('text', {x: 640, y: 28, 'text-anchor': 'middle', class: 'layer-label'}).textContent = 'КАТАЛОГ (КЛАСИФІКАЦІЯ)';
+
+// one line per pair of types; the strongest kind wins when a pair has several relations
+const RANK = {is_a: 0, made_from: 1, contains: 2, link: 3};
+const pairs = new Map();
+for (const [a, rel, b, n, kind] of D.edges) {
+  if (a === b) continue;
+  const key = [a, b].sort().join('|'), p = pairs.get(key);
+  if (!p) pairs.set(key, {a, b, kind, n, rels: [rel + ' ×' + fmt(n)]});
+  else { p.n += n; p.rels.push(rel + ' ×' + fmt(n)); if (RANK[kind] < RANK[p.kind]) Object.assign(p, {a, b, kind}); }
+}
+const clip = (x, y, tx, ty) => { const dx = tx - x, dy = ty - y, s = Math.min(Math.abs((W / 2 + 4) / (dx || 1e-9)), Math.abs((H / 2 + 4) / (dy || 1e-9))); return [x + dx * s, y + dy * s]; };
+const edgeEls = [];
+for (const p of pairs.values()) {
+  const [x1, y1] = P[p.a], [x2, y2] = P[p.b];
+  let d;
+  if (x1 === x2 && Math.abs(y2 - y1) > 100) {
+    // same column, skipping a level: bow out to the side so it does not cross the boxes between
+    const side = y2 > y1 ? -1 : 1, cx = x1 + side * (W / 2 + 40);
+    d = `M${x1 + side * W / 2},${y1} Q${cx},${(y1 + y2) / 2} ${x2 + side * W / 2},${y2}`;
+  } else {
+    const [sx, sy] = clip(x1, y1, x2, y2), [ex, ey] = clip(x2, y2, x1, y1);
+    d = `M${sx},${sy} L${ex},${ey}`;
+  }
+  const e = el('path', {d, class: `edge k-${p.kind}`, 'marker-end': `url(#m-${p.kind})`});
+  el('title', {}, e).textContent = `${p.a} → ${p.b}: ${p.rels.join(', ')}`;
+  edgeEls.push([e, p]);
+}
+const nodeEls = {};
+for (const [t, [x, y]] of Object.entries(P)) {
+  const g = el('g', {class: 'node', tabindex: 0, role: 'button', 'aria-label': `${t}, ${D.types[t].count} вузлів`});
+  el('rect', {x: x - W / 2, y: y - H / 2, width: W, height: H, rx: 5}, g);
+  el('text', {x, y: y - 3, 'text-anchor': 'middle'}, g).textContent = t;
+  el('text', {x, y: y + 13, 'text-anchor': 'middle', class: 'cnt'}, g).textContent = fmt(D.types[t].count);
+  g.addEventListener('click', () => select(t));
+  g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(t); } });
+  nodeEls[t] = g;
+}
+
+let tab = 'type';
+function select(t) {
+  for (const [k, g] of Object.entries(nodeEls)) g.classList.toggle('sel', k === t);
+  for (const [e, p] of edgeEls) { const on = p.a === t || p.b === t; e.classList.toggle('on', on); e.classList.toggle('dim', !on); }
+  const T = D.types[t];
+  const panel = document.getElementById('panel');
+  panel.innerHTML = `<div class="head" style="gap:6px"><span class="eyebrow">${T.layer === 'plastics' ? 'пластики' : 'каталог'} · ${UA[t]}</span><h3><code>type:${t}</code></h3></div>
+    <p>${esc(T.what)}</p>
+    <div class="meta"><span class="chip">${fmt(T.count)} вузлів</span><span class="chip tok">картка типу ≈${T.card_tok} ток.</span><span class="chip tok">картка вузла ≈${T.example_tok} ток.</span></div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-type" aria-selected="${tab === 'type'}">Картка типу</button>
+      <button role="tab" id="tab-node" aria-selected="${tab === 'node'}">Приклад: ${esc(T.example.id)}</button></div>
+    <pre>${esc(pretty(tab === 'type' ? T.card : T.example))}</pre>`;
+  panel.querySelector('#tab-type').onclick = () => { tab = 'type'; select(t); };
+  panel.querySelector('#tab-node').onclick = () => { tab = 'node'; select(t); };
+}
+select('variety');
+
+const WHY = [
+  'Карта: які є типи, скільки їх, як вкладені, коди регіонів. Агент читає її один раз на початку.',
+  'Пошук за назвою: короткі рядки [id, тип, назва], а не повні картки.',
+  'Картка типу «різновид»: що це і як читати такі вузли. Один раз на тип.',
+  'Картка HDPE: тільки власні дані. Формула успадкована від PE, тож не повторюється.',
+  'Ціни HDPE: ряди з даними першими, одиниця, остання ціна і її вік у днях, щоб агент бачив, наскільки дані свіжі.',
+  'Ланцюжок вгору: HDPE → PE → етилен → етан / нафта → газ / нафта. Відповідь на «що впливає на ціну».'
+];
+const maxTok = Math.max(...D.steps.map(s => s.tok));
+document.getElementById('steps').innerHTML =
+  `<div class="step"><div class="row"><span class="n">0</span><span class="call">опис 5 інструментів + інструкція сервера</span><span class="chip tok">≈${startTok} ток.</span><span class="why">Агент отримує це на старті сесії, ще до питання.</span></div></div>` +
+  D.steps.map((s, i) => `<div class="step"><div class="row"><span class="n">${i + 1}</span><span class="call">${s.tool}(${esc(Object.entries(s.args).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(', '))})</span><span class="chip tok">≈${s.tok} ток.</span></div>
+    <div class="row"><span class="n"></span><span class="why">${WHY[i]}</span></div>
+    <div class="bar" aria-hidden="true"><i style="width:${Math.max(2, 100 * s.tok / maxTok)}%"></i></div>
+    <details><summary>Показати відповідь сервера</summary><pre>${esc(pretty(s.out))}</pre></details></div>`).join('') +
+  `<div class="total"><span>Разом на питання</span><span class="mono">≈${fmt(qTok)} токенів</span></div>`;
+
+const hd = D.types.variety.example;
+const group = hd.priced_as ? Object.entries(hd.priced_as)[0] : null;
+document.getElementById('rules').innerHTML = [
+  ['is_a успадковує, made_from ні', 'HDPE — різновид PE (is_a): поля, що збігаються з PE, не повторюються. Етилен → PE — це виробництво (made_from): властивості етилену до PE не переходять, інакше агент змішав би ціни й характеристики.',
+    `<div class="cmp"><span>HDPE: <b>"is_a":"PLX-POL-PE"</b></span><span><b>"inherits":["formula","repeat_unit"]</b></span></div>`],
+  ['Поля сімей даних успадковуються у два рівні', 'Усі 1 881 сім\'ї даних мають 9 спільних полів, а сім\'ї одного домену (ціни, довідники…) ще 23–30 спільних. Сім\'я показує лише свої поля.',
+    `<div class="cmp"><span>зв'язків з полями: <b>${fmt(D.fam_edges)}</b></span><span>→ власних: <b>${fmt(D.fam_own)}</b></span></div>`],
+  ['Спільний префікс пишемо один раз', 'Списки id групуються за префіксом. У картці HDPE усі ринкові символи лежать в одній підкатегорії.',
+    group ? `<pre>${esc(JSON.stringify({[group[0]]: group[1].slice(0, 6).concat(group[1].length > 6 ? ['…'] : [])}))}</pre>` : ''],
+  ['Коротко за замовчуванням', 'Російський текст, джерела і властивості по марках агент отримує лише з detail="full". Для більшості питань вони не потрібні.',
+    `<div class="cmp"><span>HDPE brief: <b>≈${D.hdpe_brief} ток.</b></span><span>full: <b>≈${D.hdpe_full} ток.</b></span></div>`]
+].map(([h, p, x]) => `<div class="rule"><h3>${h}</h3><p>${p}</p>${x}</div>`).join('');
+
+const B = D.bench;
+document.getElementById('bench-tiles').innerHTML = [
+  [`${B.ok}/100`, 'правильних відповідей у фінальному прогоні'],
+  ['0', 'неправильних через MCP (у першому прогоні була 1)'],
+  [`${B.errors_v1} → ${B.errors}`, 'помилок інструментів, перший → фінальний прогін'],
+  [`$${B.haiku_session.toFixed(4)} / $${B.sonnet_session.toFixed(3)}`, 'вартість однієї сесії: Haiku / Sonnet']
+].map(([n, c]) => `<div class="tile"><span class="num">${n}</span><span class="cap">${c}</span></div>`).join('');
+
+document.getElementById('todo').innerHTML = [
+  `Ціни: ${fmt(D.obs)} значень у ${D.series_with_data} рядах PlasticPortal (Центральна і Східна Європа) з нашого краулера. Це тимчасове джерело: NWT Kit поки не публікує ціни, а право показувати ці ціни клієнтам треба погодити.`,
+  'Дані краулера: у місячних рядах буває по дві точки на місяць, кілька рядів давно не оновлюються.',
+  'Сервер працює локально (stdio). Для клієнтів його треба розгорнути як віддалений MCP з ключами доступу і щоденним оновленням цін.',
+  'Розміри в токенах оцінені як символи / 4. Точні числа дасть count_tokens API.'
+].map(t => `<li>${t}</li>`).join('');
+</script>

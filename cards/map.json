@@ -26,6 +26,6 @@
   "US-GULF": "US Gulf / US domestic",
   "AF-SA": "South Africa"
  },
- "price_observations": 0,
+ "price_observations": 12437,
  "how": "nwt_search(q) -> nwt_get(id) -> nwt_walk(id) / nwt_prices(id); nwt_get('type:<type>') explains a type once"
 }

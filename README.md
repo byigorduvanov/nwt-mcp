@@ -63,3 +63,10 @@ uv run python bench/report.py <tag>
 ```
 
 Results of the three runs of 2026-10-25: [bench/results/](bench/results/), report: [docs/test-report.html](docs/test-report.html).
+
+## Presentation pages
+
+`uv run python docs/src/build_demo.py` rebuilds [docs/demo.html](docs/demo.html) (Ukrainian) and
+[docs/demo-ru.html](docs/demo-ru.html) (Russian) from the graph, prices and `bench/results/`. Published copies:
+https://claude.ai/artifact/CdVytHaqfmo9GcsueYMw1R (uk), https://claude.ai/artifact/VmWHv3H16xtGJDSLnfH17v (ru),
+test report https://claude.ai/artifact/PkkvUJQBDrUdLJn2a9pQVp.

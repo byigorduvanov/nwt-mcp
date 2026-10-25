@@ -58,6 +58,33 @@ def test_search_ranks_exact_names_first():
     assert "note" not in g.search("HDPE", type="variety")
 
 
+@pytest.mark.skipif(not g.points, reason="no build/prices.db: run nwt-mcp prices-import")
+def test_prices_have_data_and_history_filters_mixed_periods():
+    p = g.prices("PLX-VAR-HDPE")
+    assert p["with_data"] >= 1 and p["series"][0][8] > 0 and "note" not in p
+    h = g.prices("sym:CMD/PET/PLA-PE/HDPE_FILM", history=4, since="2026-W30")["history"]
+    assert all(len(v) <= 4 for v in h.values()) and len(h) == 2  # weekly and monthly both survive the filter
+    assert "note" in g.prices("PLX-FEED-CRUDE")
+    assert g.prices("plasticportal:weekly:ABS")["series_total"] == 1
+
+
+def test_names_resolve_to_ids_and_types_list_their_nodes():
+    # found by the 100-session bench: agents pass names instead of ids and want "all collections"
+    assert g.prices("LDPE")["id"] == "PLX-VAR-LDPE" and g.node("HDPE_FILM")["id"] == "sym:CMD/PET/PLA-PE/HDPE_FILM"
+    assert g.search("", type="collection")["total"] == g.type_counts["collection"]
+    with pytest.raises(KeyError, match="is a type"):
+        g.walk("type:collection")
+
+
+@pytest.mark.skipif(not g.points, reason="no build/prices.db")
+def test_polymer_prices_point_to_varieties_and_search_marks_price_data():
+    pp = g.prices("PLX-POL-PP")
+    assert pp["varieties_price_points"]["PLX-VAR-PP-HOMO"] > 0 and "varieties have prices" in pp["note"]
+    assert len(next(h for h in g.search("polypropylene")["hits"] if h[0] == "PLX-VAR-PP-HOMO")) == 4
+    jan = g.prices("sym:CMD/PET/PLA-PE/HDPE_FILM", history=50, since="2024-01-01", until="2024-01-31")["history"]
+    assert all(p[0].startswith("2024-01") or p[0] in ("2024-W01", "2024-W02", "2024-W03", "2024-W04", "2024-W05") for v in jan.values() for p in v)
+
+
 def test_unknown_id_says_how_to_find_one():
     with pytest.raises(KeyError, match="nwt_search"):
         g.node("PLX-VAR-NOPE")

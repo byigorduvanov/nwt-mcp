@@ -41,5 +41,25 @@ claude mcp add nwt-data -- uv run --directory /Users/atom/work/nwt/nwt-mcp nwt-m
 
 ## Prices
 
-The graph defines 327 price series but holds no observations, and the NWT Kit publishes no price pack yet.
-`nwt_prices` returns series definitions and says so; observations will appear when `price_observations` is filled.
+`nwt_prices` reads the graph's own observations (none yet: the NWT Kit publishes no price pack) plus
+`build/prices.db`: PlasticPortal series from our crawler on the VPS (`/opt/plastic-index`), mapped to graph materials
+and symbols in [src/nwt_mcp/prices.py](src/nwt_mcp/prices.py). Refresh:
+
+```bash
+ssh spaceship-us 'sqlite3 -json -readonly /opt/plastic-index/data/plastic.db "<SERIES_SQL>"' > build/dump/series.json   # SQL in prices.py
+ssh spaceship-us 'sqlite3 -json -readonly /opt/plastic-index/data/plastic.db "<OBS_SQL>"' > build/dump/observations.json
+uv run nwt-mcp prices-import build/dump/series.json build/dump/observations.json
+```
+
+## Bench
+
+100 questions from different kinds of clients, each run as an isolated headless Claude Code session that sees only
+this MCP server ([bench/run.py](bench/run.py)); expectations are computed from the data ([bench/questions.py](bench/questions.py)).
+
+```bash
+uv run python bench/questions.py bench/questions.json
+uv run python bench/run.py <tag> --workers 6      # ~6 min, ~$1.3 (half Haiku, half Sonnet)
+uv run python bench/report.py <tag>
+```
+
+Results of the three runs of 2026-10-25: [bench/results/](bench/results/), report: [docs/test-report.html](docs/test-report.html).

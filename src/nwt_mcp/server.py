@@ -9,7 +9,8 @@ from .cards import Graph, dumps
 INSTRUCTIONS = (
     "NWT data graph: plastics production chain + market data catalogue. Start with nwt_map once, find ids with "
     "nwt_search, read one card with nwt_get, follow chains with nwt_walk. Ids are permanent codes; never guess one. "
-    "Lists of ids are grouped by shared prefix: {\"sym:CMD/PET/PLA-PE/\":[\"HDPE_FILM\"]} = sym:CMD/PET/PLA-PE/HDPE_FILM."
+    "Lists of ids are grouped by shared prefix: {\"sym:CMD/PET/PLA-PE/\":[\"HDPE_FILM\"]} = sym:CMD/PET/PLA-PE/HDPE_FILM. "
+    "Always answer in the language the user wrote the question in."
 )
 
 mcp = MCPServer("nwt-data", instructions=INSTRUCTIONS)
@@ -36,7 +37,8 @@ def nwt_map() -> str:
 
 @tool
 def nwt_search(q: str, type: str | None = None, under: str | None = None, limit: int = 10) -> str:
-    """Find ids by name, abbreviation or code (all words must match). Returns [id, type, name] rows, best first.
+    """Find ids by name, abbreviation or code (all words must match). Returns [id, type, name, price_points] rows, best first;
+    price_points is present only when the id has price data. q='' with type lists every node of that type.
     type: only this node type; if nothing matches, all types are searched. polymer = PE, PP, PVC, PS, PET, ABS;
     variety = HDPE, LDPE, LLDPE, PP-HOMO/RCP/ICP, PVC-U/P, GPPS, HIPS, PET-BOTTLE, RPET. Usually omit it.
     under: only inside this catalogue node, e.g. 'sub:CMD/PET/PLA-PE' or 'cat:CMD/PET'."""
@@ -61,9 +63,13 @@ def nwt_walk(id: str, direction: Literal["up", "down"] = "up",
 
 
 @tool
-def nwt_prices(id: str, limit: int = 30) -> str:
-    """Price series of a material or market symbol: symbol, region, incoterm, price type, number of observations."""
-    return dumps(graph().prices(id, limit))
+def nwt_prices(id: str, history: int = 0, since: str | None = None, until: str | None = None, limit: int = 30) -> str:
+    """Price series of a material or market symbol, series with data first: region, terms, unit (EUR/KGM = euro per kg,
+    EUR/TNE = per tonne), frequency, number of points, first/last period, last value and its age in days (old = stale).
+    history=N adds the last N points of each series (max 120) within since/until, e.g. since='2024-01-01', until='2024-01-31'.
+    For a polymer, varieties_price_points shows which varieties carry the prices.
+    Weekly periods look like 2026-W37, monthly like 2026-08-01."""
+    return dumps(graph().prices(id, limit, history, since, until))
 
 
 @mcp.resource("nwt://map", mime_type="application/json")

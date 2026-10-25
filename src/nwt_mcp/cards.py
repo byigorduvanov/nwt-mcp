@@ -4,11 +4,13 @@ import json
 import os
 import sqlite3
 from collections import Counter, defaultdict
+from datetime import date
 from pathlib import Path
 
 from .schema import FIELD_MEANING, RELS, TYPES
 
 DEFAULT_DB = Path.home() / ".nwt" / "symbol-graph" / "graph.db"
+DEFAULT_PRICES = Path(__file__).resolve().parents[2] / "build" / "prices.db"
 # Fields never shown in a brief card: Russian text and sources are long and rarely needed to find data.
 FULL_ONLY = {"name_ru", "description_ru", "sources", "properties"}
 
@@ -22,6 +24,14 @@ def tokens(obj):
     return round(len(obj if isinstance(obj, str) else dumps(obj)) / 4)
 
 
+def period_date(p):
+    """'2026-W37' -> '2026-09-07' (ISO week Monday), '2026-08' -> '2026-08', dates unchanged: comparable as strings."""
+    if "-W" in p:
+        y, w = p.split("-W")
+        return date.fromisocalendar(int(y), int(w), 1).isoformat()
+    return p
+
+
 def group(ids):
     """['sym:A/B/X', 'sym:A/B/Y', 'fld:z'] -> {'sym:A/B/': ['X', 'Y'], 'fld:': ['z']}: a shared prefix is written once."""
     out = defaultdict(list)
@@ -32,7 +42,20 @@ def group(ids):
 
 
 class Graph:
-    def __init__(self, db=None):
+    def _load_prices(self, path):
+        # prices imported beside the graph (build/prices.db, see prices.py); the kit's graph.db stays read-only
+        p = Path(path or os.environ.get("NWT_PRICES_DB") or DEFAULT_PRICES)
+        if not p.exists():
+            return
+        con = sqlite3.connect(f"file:{p}?mode=ro", uri=True)
+        cols = ("series_key", "material", "symbol", "region", "basis", "price_type", "material_state", "currency", "unit", "frequency", "source")
+        self.series += [dict(zip(cols, r)) for r in con.execute(f"SELECT {', '.join(cols)} FROM series")]
+        for k, per, v in con.execute("SELECT series_key, period, value FROM observations ORDER BY 1, 2"):
+            self.points[k].append([per, v])
+        con.close()
+        self.obs = {k: len(v) for k, v in self.points.items()}
+
+    def __init__(self, db=None, prices=None):
         self.db = Path(db or os.environ.get("NWT_GRAPH_DB") or DEFAULT_DB)
         con = sqlite3.connect(f"file:{self.db}?mode=ro", uri=True)
         self.nodes = {i: (t, l, layer, json.loads(d)) for i, t, l, layer, d in con.execute("SELECT id, type, label, layer, data FROM nodes")}
@@ -49,7 +72,11 @@ class Graph:
         self.props = defaultdict(list)
         for r in con.execute("SELECT material, key, grade, min, max, typical, unit, test, condition FROM material_properties"):
             self.props[r[0]].append(r[1:])
+        self.points = defaultdict(list)
+        for k, p, v in con.execute("SELECT series_key, valid_date, price_mid FROM price_observations WHERE price_mid IS NOT NULL ORDER BY 1, 2"):
+            self.points[k].append([p, v])
         con.close()
+        self._load_prices(prices)
         ver = self.db.parent / "VERSION"
         self.version = ver.read_text().strip() if ver.exists() else "unknown"
         self.materials_dir = self.db.parent / "materials"
@@ -73,6 +100,19 @@ class Graph:
         for i, (t, l, _, d) in self.nodes.items():
             self.hay[i] = " ".join(str(x) for x in (i, l, d.get("name_en"), d.get("abbr"), d.get("code")) if x).lower()
         self.type_counts = Counter(n[0] for n in self.nodes.values())
+        # names an agent may pass instead of an id: abbreviation, English or Russian name, last code segment
+        self.alias = defaultdict(set)
+        for i, (t, l, _, d) in self.nodes.items():
+            # also the id without its prefix: nwt-cmd-pet-pla-pe-pricing (fam:), PET-BOTTLE (PLX-VAR-)
+            bare = i.split(":", 1)[1] if ":" in i else i.split("-", 2)[-1] if i.startswith("PLX-") else None
+            for a in (d.get("abbr"), d.get("name_en"), l, i.rsplit("/", 1)[-1] if "/" in i else None, bare):
+                if a:
+                    self.alias[a.strip().lower()].add(i)
+        self.npts = Counter()
+        for s in self.series:
+            n = len(self.points.get(s["series_key"], ()))
+            self.npts[s["material"]] += n
+            self.npts[s["symbol"]] += n
 
     # ---- helpers
     def name(self, i):
@@ -80,11 +120,23 @@ class Graph:
         return d.get("name_en") or l
 
     def row(self, i):
-        return [i, self.nodes[i][0], self.name(i)]
+        # 4th element only when the id has price points, so an agent does not probe symbols without data
+        return [i, self.nodes[i][0], self.name(i)] + ([self.npts[i]] if self.npts.get(i) else [])
+
+    def resolve(self, i):
+        """The id itself, or the one node an agent meant by a name or code it typed instead (LDPE, HDPE_FILM)."""
+        if i in self.nodes:
+            return i
+        if i.startswith("type:"):
+            raise KeyError(f"{i!r} is a type, not a node: read it with nwt_get, list its nodes with nwt_search(q='', type='{i[5:]}')")
+        cands = sorted(self.alias.get(i.strip().lower(), ()), key=lambda n: self.nodes[n][2] != "plastics")
+        if len(cands) == 1 or cands and self.nodes[cands[0]][2] == "plastics" and (len(cands) < 2 or self.nodes[cands[1]][2] != "plastics"):
+            return cands[0]
+        near = [h[0] for h in self.search(i, limit=5)["hits"]] if i.strip() else []
+        raise KeyError(f"unknown id {i!r}" + (f"; closest: {', '.join(near)}" if near else "") + ". Find ids with nwt_search")
 
     def require(self, i):
-        if i not in self.nodes:
-            raise KeyError(f"unknown id {i!r}: find ids with nwt_search")
+        self.resolve(i)
 
     def is_a_parents(self, i):
         ps = [s for r, s in self.inn[i] if r == "has_variety"]
@@ -145,7 +197,7 @@ class Graph:
     def node(self, i, inherit=False, detail="brief", limit=20):
         if i.startswith("type:"):
             return self.type_card(i[5:])
-        self.require(i)
+        i = self.resolve(i)
         t, label, layer, data = self.nodes[i]
         card = {"id": i, "type": t, "name": self.name(i)}
         own = {k: v for k, v in data.items() if k not in ("name_en", "code") and (detail == "full" or k not in FULL_ONLY) and v not in (None, "", [])}
@@ -188,9 +240,14 @@ class Graph:
             if r != "has_variety" or t != "variety":
                 links[RELS[r][2]].append(s)
         for name, ids in sorted(links.items()):
-            ids.sort()
-            card[name] = group(ids[:limit]) if len(ids) > 1 else ids[0]
-            if len(ids) > limit:
+            # ids with prices first, so a cut list keeps what has data (rPET, rHDPE were cut alphabetically)
+            # then tradable products before metrics, fees and policies
+            rank = {"series": 0, "grade": 0, "substance": 1, "futures": 2, "asset": 2, "trade": 3, "metric": 4, "policy": 5}
+            ids.sort(key=lambda x: (-self.npts.get(x, 0), rank.get(self.symclass.get(x, {}).get("class"), 3), x))
+            # a subcategory's symbols share one prefix, so all of them (max 146) cost ~450 tokens: never cut them
+            cap = max(limit, 150) if name == "symbols" else limit
+            card[name] = group(ids[:cap]) if len(ids) > 1 else ids[0]
+            if len(ids) > cap:
                 card[name + "_total"] = len(ids)
         n = sum(1 for s in self.series if s["material"] == i or s["symbol"] == i)
         if n:
@@ -200,8 +257,12 @@ class Graph:
     # ---- search: ranked rows [id, type, name]
     def search(self, q, type=None, under=None, limit=10):
         words = q.lower().split()
-        if not words:
-            raise ValueError("empty query")
+        if not words and not type:
+            raise ValueError("empty query: give words, or type= to list every node of a type")
+        if type and type not in TYPES:
+            # a made-up type (material, product) must not cost a failed call: search all types and say so
+            out = self.search(q, None, under, limit)
+            return {**out, "note": f"unknown type {type!r}, searched all types; types: {', '.join(TYPES)}"}
         path = under.split(":", 1)[-1] if under else None
         hits = []
         for i, h in self.hay.items():
@@ -217,11 +278,15 @@ class Graph:
             score += {"variety": 9, "polymer": 8, "monomer": 7, "subcategory": 6, "symbol": 5}.get(t, 0)
             hits.append((-score, len(self.name(i)), i))
         hits.sort()
-        if not hits and type:
+        if not hits and type and words:
             # a wrong type guess (HDPE as polymer) must not cost the agent a second call
             out = self.search(q, None, under, limit)
             return {**out, "note": f"no {type} matches; showing all types"} if out["total"] else out
-        return {"total": len(hits), "hits": [self.row(i) for *_, i in hits[:limit]]}
+        rows = [self.row(i) for *_, i in hits[:limit]]
+        out = {"total": len(hits), "hits": rows}
+        if rows and not any(len(r) == 4 for r in rows):
+            out["note"] = "none of these hits has price data"
+        return out
 
     def _under(self, i, path):
         # segment boundary: PLA-PE must not match PLA-PET
@@ -230,7 +295,7 @@ class Graph:
 
     # ---- walk: tree/chain around a node as rows [depth, id, type, name, via]
     def walk(self, i, direction="up", kind=None, depth=3, limit=50):
-        self.require(i)
+        i = self.resolve(i)
         if direction not in ("up", "down"):
             raise ValueError("direction is 'up' or 'down'")
         kinds = {kind} if kind else {"is_a", "contains", "made_from"}
@@ -260,19 +325,37 @@ class Graph:
             if RELS[r][0] in kinds and (direction == "up") != (r in up_is_dst):
                 yield s, r
 
-    # ---- price series of a material or symbol; observations only if the graph has them
-    def prices(self, i, limit=30):
-        self.require(i)
-        rows = [s for s in self.series if i in (s["material"], s["symbol"])]
-        out = {"id": i, "series_total": len(rows)}
+    # ---- price series of a material or symbol, series with data first; history = last N points per series
+    def prices(self, i, limit=30, history=0, since=None, until=None):
+        # a series key from an earlier answer (plasticportal:weekly:ABS) selects that one series
+        one = [s for s in self.series if s["series_key"] == i]
+        i = one[0]["symbol"] if one else self.resolve(i)
+        rows = one or [s for s in self.series if i in (s["material"], s["symbol"])]
+        rows.sort(key=lambda s: (-len(self.points.get(s["series_key"], ())), s["series_key"]))
+        out = {"id": i, "series_total": len(rows), "with_data": sum(1 for s in rows if self.points.get(s["series_key"]))}
         if rows:
-            cols = ["symbol", "region", "incoterm", "price_type", "material_state"]
-            out["cols"] = cols + ["observations"]
-            out["series"] = [[s[c] for c in cols] + [self.obs.get(s["series_key"], 0)] for s in rows[:limit]]
-        else:
-            kids = [s for r, s in self.out[i] if r == "has_variety"]
-            if kids:
-                out["see_varieties"] = {k: sum(1 for s in self.series if s["material"] == k) for k in kids}
-        if not sum(self.obs.values()):
-            out["note"] = "this graph build has no price observations yet: series definitions only"
+            out["cols"] = ["series", "symbol", "region", "terms", "price_type", "state", "unit", "freq", "n", "first", "last", "last_value", "age_d"]
+            out["series"] = []
+            for s in rows[:limit]:
+                pts = self.points.get(s["series_key"], [])
+                unit = f"{s.get('currency')}/{s.get('unit')}" if s.get("currency") else s.get("unit")
+                age = (date.today() - date.fromisoformat(period_date(pts[-1][0])[:10])).days if pts else None
+                out["series"].append([s["series_key"], s["symbol"], s["region"], s.get("incoterm") or s.get("basis"), s["price_type"],
+                                      s["material_state"], unit, s.get("frequency"), len(pts),
+                                      pts[0][0] if pts else None, pts[-1][0] if pts else None, pts[-1][1] if pts else None, age])
+            if history:
+                n, lo, hi = max(1, min(int(history), 120)), since and period_date(since), until and period_date(until)
+                keep = lambda p: (not lo or period_date(p) >= lo) and (not hi or period_date(p) <= hi)
+                hist = {s["series_key"]: [p for p in self.points[s["series_key"]] if keep(p[0])][-n:] for s in rows[:limit]}
+                out["history"] = {k: v for k, v in hist.items() if v}
+            sources = sorted({s["source"] for s in rows if s.get("source")})
+            if sources:
+                out["sources"] = sources
+        # a polymer's own series may be empty while its varieties have prices: say so instead of "no data"
+        kids = {k: self.npts.get(k, 0) for r, k in self.out[i] if r == "has_variety"}
+        if kids:
+            out["varieties_price_points"] = kids
+        if not out["with_data"]:
+            out["note"] = ("no own price observations; varieties have prices: call nwt_prices on them" if any(kids.values())
+                           else "no price observations for this id: series definitions only")
         return out

@@ -79,6 +79,12 @@ def view(out):
 def main():
     if sys.argv[1:2] == ["export"]:
         export(sys.argv[2] if len(sys.argv) > 2 else "cards")
+    elif sys.argv[1:2] == ["prices-import"]:
+        # nwt-mcp prices-import series.json observations.json [build/prices.db]
+        from .cards import DEFAULT_PRICES, Graph
+        from .prices import import_dump
+        n_series, n_obs = import_dump(sys.argv[2], sys.argv[3], sys.argv[4] if len(sys.argv) > 4 else DEFAULT_PRICES, set(Graph(prices="/nonexistent").nodes))
+        print(f"imported {n_series} series, {n_obs} observations")
     elif sys.argv[1:2] == ["view"]:
         view(sys.argv[2] if len(sys.argv) > 2 else "build/view.html")
     else:

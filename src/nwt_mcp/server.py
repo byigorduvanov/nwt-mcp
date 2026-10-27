@@ -1,7 +1,9 @@
 """MCP server: five read-only tools over the NWT graph. Answers are compact JSON text, never structured duplicates."""
+from functools import wraps
 from typing import Literal
 
 from mcp.server import MCPServer
+from mcp.server.mcpserver.exceptions import ToolError
 from mcp.types import ToolAnnotations
 
 from .cards import Graph, dumps
@@ -15,6 +17,8 @@ INSTRUCTIONS = (
 
 mcp = MCPServer("nwt-data", instructions=INSTRUCTIONS)
 RO = ToolAnnotations(read_only_hint=True, open_world_hint=False)
+# the model picks `limit`; one search with limit=100000 was ~279k tokens. Totals still tell it how much was cut.
+MAX_SEARCH, MAX_LINKS, MAX_WALK, MAX_SERIES = 100, 150, 200, 100
 _graph = None
 
 
@@ -26,7 +30,14 @@ def graph():
 
 
 def tool(fn):
-    return mcp.tool(annotations=RO, structured_output=False)(fn)
+    @wraps(fn)
+    def run(*a, **kw):
+        try:
+            return fn(*a, **kw)
+        except (KeyError, ValueError) as e:
+            # the SDK hides plain exceptions from the model; ToolError carries our hint (closest ids, what to pass)
+            raise ToolError(e.args[0] if e.args else str(e)) from e
+    return mcp.tool(annotations=RO, structured_output=False)(run)
 
 
 @tool
@@ -42,7 +53,7 @@ def nwt_search(q: str, type: str | None = None, under: str | None = None, limit:
     type: only this node type; if nothing matches, all types are searched. polymer = PE, PP, PVC, PS, PET, ABS;
     variety = HDPE, LDPE, LLDPE, PP-HOMO/RCP/ICP, PVC-U/P, GPPS, HIPS, PET-BOTTLE, RPET. Usually omit it.
     under: only inside this catalogue node, e.g. 'sub:CMD/PET/PLA-PE' or 'cat:CMD/PET'."""
-    return dumps(graph().search(q, type, under, limit))
+    return dumps(graph().search(q, type, under, min(limit, MAX_SEARCH)))
 
 
 @tool
@@ -51,7 +62,7 @@ def nwt_get(id: str, inherit: bool = False, detail: Literal["brief", "full"] = "
     Any other id gives the node card: own fields, links (first `limit` per kind, *_total = full count).
     Fields equal to the is_a parent are listed in 'inherits'; inherit=true includes their values.
     detail=full adds Russian text, sources, per-grade properties and data gaps."""
-    return dumps(graph().node(id, inherit, detail, limit))
+    return dumps(graph().node(id, inherit, detail, min(limit, MAX_LINKS)))
 
 
 @tool
@@ -59,7 +70,7 @@ def nwt_walk(id: str, direction: Literal["up", "down"] = "up",
              kind: Literal["is_a", "contains", "made_from", "link"] | None = None, depth: int = 3, limit: int = 50) -> str:
     """Rows [depth, id, type, name, rel] around a node. up = parents and raw materials, down = children and products.
     kind limits the relation kind (default: is_a + contains + made_from). Example: walk HDPE up, depth 6 = full production chain."""
-    return dumps(graph().walk(id, direction, kind, depth, limit))
+    return dumps(graph().walk(id, direction, kind, depth, min(limit, MAX_WALK)))
 
 
 @tool
@@ -69,7 +80,7 @@ def nwt_prices(id: str, history: int = 0, since: str | None = None, until: str |
     history=N adds the last N points of each series (max 120) within since/until, e.g. since='2024-01-01', until='2024-01-31'.
     For a polymer, varieties_price_points shows which varieties carry the prices.
     Weekly periods look like 2026-W37, monthly like 2026-08-01."""
-    return dumps(graph().prices(id, limit, history, since, until))
+    return dumps(graph().prices(id, min(limit, MAX_SERIES), history, since, until))
 
 
 @mcp.resource("nwt://map", mime_type="application/json")

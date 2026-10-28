@@ -1,4 +1,5 @@
 import json
+import re
 
 import pytest
 
@@ -111,3 +112,10 @@ async def test_mcp_tools_return_compact_text_only():
         assert bad.is_error
         r = await c.read_resource("nwt://node/sym:CMD/PET/PLA-PE/HDPE_FILM")
         assert json.loads(r.contents[0].text)["prices"] == "PLX-VAR-HDPE"
+
+
+def test_unknown_id_suggests_close_ids():
+    for typo, meant in [("PLX-VAR-HDPE-FILM", "PLX-VAR-HDPE"), ("sym:CMD/PET/PLA-PE/HDPE_FLIM", "sym:CMD/PET/PLA-PE/HDPE_FILM"),
+                        ("PLX-POL-POLYETHYLENE", "PLX-POL-PE"), ("PLX-VAR-PPHOMO", "PLX-VAR-PP-HOMO")]:
+        with pytest.raises(KeyError, match=rf"closest: .*\b{re.escape(meant)}[,.]"):
+            g.node(typo)

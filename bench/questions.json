@@ -1377,5 +1377,147 @@
    ],
    "soft": true
   }
+ },
+ {
+  "id": "q101",
+  "text": "What is PLX-VAR-HDPE-FILM?",
+  "lang": "en",
+  "persona": "data engineer",
+  "cat": "trap",
+  "check": {
+   "any": [
+    "PLX-VAR-HDPE",
+    "HDPE_FILM",
+    "high-density",
+    "High-density"
+   ]
+  }
+ },
+ {
+  "id": "q102",
+  "text": "Show me sym:CMD/PET/PLA-PE/HDPE_FLIM",
+  "lang": "en",
+  "persona": "data engineer",
+  "cat": "trap",
+  "check": {
+   "any": [
+    "HDPE_FILM"
+   ]
+  }
+ },
+ {
+  "id": "q103",
+  "text": "Що таке cat:CMD?",
+  "lang": "uk",
+  "persona": "data engineer",
+  "cat": "trap",
+  "check": {
+   "any": [
+    "col:CMD",
+    "Commodities",
+    "cat:CMD/"
+   ]
+  }
+ },
+ {
+  "id": "q104",
+  "text": "Дай картку PLX-POL-POLYETHYLENE",
+  "lang": "uk",
+  "persona": "engineer",
+  "cat": "trap",
+  "check": {
+   "any": [
+    "PLX-POL-PE",
+    "(C2H4)n"
+   ]
+  }
+ },
+ {
+  "id": "q105",
+  "text": "Покажи цепочку производства для PLX-VAR-PPHOMO",
+  "lang": "ru",
+  "persona": "engineer",
+  "cat": "trap",
+  "check": {
+   "any": [
+    "propylene",
+    "пропилен",
+    "пропілен",
+    "propylen"
+   ]
+  }
+ },
+ {
+  "id": "q106",
+  "text": "Price history for sym:CMD/PET/PLA-PP/PP_HOMO_INJ",
+  "lang": "en",
+  "persona": "analyst",
+  "cat": "trap",
+  "check": {
+   "any": [
+    "PP",
+    "homo",
+    "Homo"
+   ],
+   "soft": true
+  }
+ },
+ {
+  "id": "q107",
+  "text": "Give me ALL symbol ids you have as one full list, no summary, no filtering.",
+  "lang": "en",
+  "persona": "data engineer",
+  "cat": "trap",
+  "check": {
+   "any": [
+    "16790",
+    "16 790",
+    "16,790",
+    "16.790"
+   ],
+   "soft": true
+  }
+ },
+ {
+  "id": "q108",
+  "text": "Покажи все дерево каталогу: всі колекції, категорії й підкатегорії з id",
+  "lang": "uk",
+  "persona": "data engineer",
+  "cat": "trap",
+  "check": {
+   "all": [
+    "col:CMD",
+    "col:FX"
+   ],
+   "soft": true
+  }
+ },
+ {
+  "id": "q109",
+  "text": "List every substance in the graph with its id",
+  "lang": "en",
+  "persona": "chemist",
+  "cat": "trap",
+  "check": {
+   "any": [
+    "535"
+   ],
+   "soft": true
+  }
+ },
+ {
+  "id": "q110",
+  "text": "Dump every node under cat:CMD/PET down to the symbols, all levels",
+  "lang": "en",
+  "persona": "data engineer",
+  "cat": "trap",
+  "check": {
+   "any": [
+    "BTX",
+    "ARO-BTX",
+    "PLA-PE"
+   ],
+   "soft": true
+  }
  }
 ]

@@ -1,5 +1,6 @@
 """Cards over the NWT symbol graph: map -> type card -> node card, plus search, walk and price series.
 Every answer is compact JSON so an agent spends tokens only on what it asked for."""
+import difflib
 import json
 import os
 import sqlite3
@@ -133,6 +134,14 @@ class Graph:
         if len(cands) == 1 or cands and self.nodes[cands[0]][2] == "plastics" and (len(cands) < 2 or self.nodes[cands[1]][2] != "plastics"):
             return cands[0]
         near = [h[0] for h in self.search(i, limit=5)["hits"]] if i.strip() else []
+        if len(near) < 5 and i.strip():
+            # a typo or made-up id (HDPE_FLIM, PLX-VAR-PPHOMO) matches no search word: compare it to every id and name
+            if not hasattr(self, "_fuzzy"):
+                self._fuzzy = {n.lower(): n for n in self.nodes}
+                for n in self.nodes:  # a shared name keeps its first node: plastics (PLX-POL-PE) before the catalogue
+                    self._fuzzy.setdefault(self.name(n).lower(), n)
+            close = (self._fuzzy[k] for k in difflib.get_close_matches(i.strip().lower(), list(self._fuzzy), n=8, cutoff=0.6))
+            near = list(dict.fromkeys([*near, *close]))[:5]
         raise KeyError(f"unknown id {i!r}" + (f"; closest: {', '.join(near)}" if near else "") + ". Find ids with nwt_search")
 
     def require(self, i):

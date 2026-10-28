@@ -32,3 +32,9 @@ async def test_error_hint_reaches_model():
     assert err and "unknown id 'HDPE-X'" in txt and "Find ids with nwt_search" in txt
     err, txt = await call("nwt_search", {"q": ""})
     assert err and "empty query" in txt
+
+
+@pytest.mark.anyio
+async def test_close_ids_reach_model():
+    err, txt = await call("nwt_get", {"id": "PLX-VAR-PPHOMO"})
+    assert err and "closest: PLX-VAR-PP-HOMO" in txt
